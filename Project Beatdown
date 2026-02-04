@@ -1,0 +1,446 @@
+--[[
+    GAME-SPECIFIC SCRIPT TEMPLATE
+    ==============================
+    
+    This is a template for your game-specific scripts.
+    The loading screen loads this automatically when the game is detected.
+    
+    FEATURES AVAILABLE:
+    - _G.Notify.Info(title, message, duration)
+    - _G.Notify.Success(title, message, duration)
+    - _G.Notify.Warning(title, message, duration)
+    - _G.Notify.Error(title, message, duration)
+    
+    INSTRUCTIONS:
+    1. Copy MainHub.lua code below to create your UI
+    2. Customize for your specific game
+    3. Upload to Pastebin/GitHub
+    4. Add the URL to LoadingScreen.lua
+]]
+
+-- ========================================
+-- MAIN HUB LIBRARY (Copy from MainHub.lua)
+-- ========================================
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local Library = {}
+
+function Library:CreateWindow(config)
+	config = config or {}
+	local windowName = config.Name or "Hub"
+	local gameName = config.Game or "Universal"
+	
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "MainHub"
+	screenGui.ResetOnSpawn = false
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.Parent = playerGui
+	
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Name = "MainFrame"
+	mainFrame.Size = UDim2.new(0, 600, 0, 400)
+	mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.ClipsDescendants = true
+	mainFrame.Parent = screenGui
+	
+	local mainCorner = Instance.new("UICorner")
+	mainCorner.CornerRadius = UDim.new(0, 12)
+	mainCorner.Parent = mainFrame
+	
+	local mainStroke = Instance.new("UIStroke")
+	mainStroke.Color = Color3.fromRGB(100, 150, 255)
+	mainStroke.Thickness = 2
+	mainStroke.Transparency = 0.5
+	mainStroke.Parent = mainFrame
+	
+	local bgGradient = Instance.new("UIGradient")
+	bgGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 30)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+	})
+	bgGradient.Rotation = 45
+	bgGradient.Parent = mainFrame
+	
+	local topBar = Instance.new("Frame")
+	topBar.Name = "TopBar"
+	topBar.Size = UDim2.new(1, 0, 0, 50)
+	topBar.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+	topBar.BorderSizePixel = 0
+	topBar.Parent = mainFrame
+	
+	local topCorner = Instance.new("UICorner")
+	topCorner.CornerRadius = UDim.new(0, 12)
+	topCorner.Parent = topBar
+	
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Name = "Title"
+	titleLabel.Size = UDim2.new(0, 200, 1, 0)
+	titleLabel.Position = UDim2.new(0, 20, 0, 0)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Text = windowName
+	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	titleLabel.TextSize = 20
+	titleLabel.Font = Enum.Font.GothamBold
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLabel.Parent = topBar
+	
+	local gameLabel = Instance.new("TextLabel")
+	gameLabel.Name = "GameLabel"
+	gameLabel.Size = UDim2.new(0, 200, 0, 15)
+	gameLabel.Position = UDim2.new(0, 20, 0, 30)
+	gameLabel.BackgroundTransparency = 1
+	gameLabel.Text = gameName
+	gameLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
+	gameLabel.TextSize = 12
+	gameLabel.Font = Enum.Font.Gotham
+	gameLabel.TextXAlignment = Enum.TextXAlignment.Left
+	gameLabel.Parent = topBar
+	
+	local closeButton = Instance.new("TextButton")
+	closeButton.Name = "CloseButton"
+	closeButton.Size = UDim2.new(0, 40, 0, 40)
+	closeButton.Position = UDim2.new(1, -50, 0, 5)
+	closeButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+	closeButton.BorderSizePixel = 0
+	closeButton.Text = "✕"
+	closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeButton.TextSize = 18
+	closeButton.Font = Enum.Font.GothamBold
+	closeButton.Parent = topBar
+	
+	local closeCorner = Instance.new("UICorner")
+	closeCorner.CornerRadius = UDim.new(0, 8)
+	closeCorner.Parent = closeButton
+	
+	local tabContainer = Instance.new("Frame")
+	tabContainer.Name = "TabContainer"
+	tabContainer.Size = UDim2.new(0, 150, 1, -60)
+	tabContainer.Position = UDim2.new(0, 10, 0, 60)
+	tabContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+	tabContainer.BorderSizePixel = 0
+	tabContainer.Parent = mainFrame
+	
+	local tabCorner = Instance.new("UICorner")
+	tabCorner.CornerRadius = UDim.new(0, 8)
+	tabCorner.Parent = tabContainer
+	
+	local tabLayout = Instance.new("UIListLayout")
+	tabLayout.Padding = UDim.new(0, 5)
+	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	tabLayout.Parent = tabContainer
+	
+	local tabPadding = Instance.new("UIPadding")
+	tabPadding.PaddingTop = UDim.new(0, 10)
+	tabPadding.PaddingLeft = UDim.new(0, 10)
+	tabPadding.PaddingRight = UDim.new(0, 10)
+	tabPadding.Parent = tabContainer
+	
+	local contentContainer = Instance.new("Frame")
+	contentContainer.Name = "ContentContainer"
+	contentContainer.Size = UDim2.new(1, -180, 1, -70)
+	contentContainer.Position = UDim2.new(0, 170, 0, 60)
+	contentContainer.BackgroundTransparency = 1
+	contentContainer.Parent = mainFrame
+	
+	-- Dragging
+	local dragging = false
+	local dragInput, dragStart, startPos
+	
+	local function update(input)
+		local delta = input.Position - dragStart
+		mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+	
+	topBar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			dragStart = input.Position
+			startPos = mainFrame.Position
+			
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	
+	UserInputService.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+			update(input)
+		end
+	end)
+	
+	closeButton.MouseButton1Click:Connect(function()
+		local fadeOut = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+		TweenService:Create(mainFrame, fadeOut, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}):Play()
+		wait(0.3)
+		screenGui:Destroy()
+	end)
+	
+	local Window = {Tabs = {}, CurrentTab = nil, MainFrame = mainFrame, ScreenGui = screenGui}
+	
+	function Window:CreateTab(tabName)
+		local Tab = {Name = tabName, Elements = {}, Container = nil, Button = nil}
+		
+		local tabButton = Instance.new("TextButton")
+		tabButton.Name = tabName
+		tabButton.Size = UDim2.new(1, 0, 0, 35)
+		tabButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+		tabButton.BorderSizePixel = 0
+		tabButton.Text = tabName
+		tabButton.TextColor3 = Color3.fromRGB(200, 200, 210)
+		tabButton.TextSize = 14
+		tabButton.Font = Enum.Font.GothamMedium
+		tabButton.Parent = tabContainer
+		
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 6)
+		btnCorner.Parent = tabButton
+		
+		Tab.Button = tabButton
+		
+		local tabContent = Instance.new("ScrollingFrame")
+		tabContent.Name = tabName .. "Content"
+		tabContent.Size = UDim2.new(1, 0, 1, 0)
+		tabContent.BackgroundTransparency = 1
+		tabContent.BorderSizePixel = 0
+		tabContent.ScrollBarThickness = 4
+		tabContent.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
+		tabContent.Visible = false
+		tabContent.Parent = contentContainer
+		
+		local contentLayout = Instance.new("UIListLayout")
+		contentLayout.Padding = UDim.new(0, 8)
+		contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		contentLayout.Parent = tabContent
+		
+		local contentPadding = Instance.new("UIPadding")
+		contentPadding.PaddingTop = UDim.new(0, 10)
+		contentPadding.PaddingLeft = UDim.new(0, 10)
+		contentPadding.PaddingRight = UDim.new(0, 10)
+		contentPadding.PaddingBottom = UDim.new(0, 10)
+		contentPadding.Parent = tabContent
+		
+		Tab.Container = tabContent
+		
+		tabButton.MouseButton1Click:Connect(function()
+			for _, tab in pairs(Window.Tabs) do
+				tab.Container.Visible = false
+				tab.Button.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+				tab.Button.TextColor3 = Color3.fromRGB(200, 200, 210)
+			end
+			
+			tabContent.Visible = true
+			tabButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+			tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+			Window.CurrentTab = Tab
+		end)
+		
+		if #Window.Tabs == 0 then
+			tabContent.Visible = true
+			tabButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+			tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+			Window.CurrentTab = Tab
+		end
+		
+		table.insert(Window.Tabs, Tab)
+		
+		-- NOTE: For full UI elements (Toggle, Slider, Dropdown), 
+		-- copy them from MainHub.lua to keep this template short
+		
+		function Tab:CreateButton(config)
+			config = config or {}
+			local buttonFrame = Instance.new("Frame")
+			buttonFrame.Size = UDim2.new(1, 0, 0, 40)
+			buttonFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			buttonFrame.BorderSizePixel = 0
+			buttonFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 8)
+			corner.Parent = buttonFrame
+			
+			local button = Instance.new("TextButton")
+			button.Size = UDim2.new(1, 0, 1, 0)
+			button.BackgroundTransparency = 1
+			button.Text = config.Name or "Button"
+			button.TextColor3 = Color3.fromRGB(255, 255, 255)
+			button.TextSize = 14
+			button.Font = Enum.Font.GothamMedium
+			button.Parent = buttonFrame
+			
+			button.MouseButton1Click:Connect(function()
+				TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 150, 255)}):Play()
+				wait(0.1)
+				TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(30, 30, 40)}):Play()
+				if config.Callback then config.Callback() end
+			end)
+			
+			return {Frame = buttonFrame}
+		end
+		
+		function Tab:CreateLabel(text)
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, 0, 0, 30)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Color3.fromRGB(180, 180, 190)
+			label.TextSize = 13
+			label.Font = Enum.Font.Gotham
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = tabContent
+			return {Label = label}
+		end
+		
+		function Tab:CreateSection(name)
+			local frame = Instance.new("Frame")
+			frame.Size = UDim2.new(1, 0, 0, 35)
+			frame.BackgroundTransparency = 1
+			frame.Parent = tabContent
+			
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, 0, 1, 0)
+			label.BackgroundTransparency = 1
+			label.Text = name
+			label.TextColor3 = Color3.fromRGB(100, 150, 255)
+			label.TextSize = 16
+			label.Font = Enum.Font.GothamBold
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = frame
+			
+			return {Frame = frame}
+		end
+		
+		return Tab
+	end
+	
+	return Window
+end
+
+-- ========================================
+-- YOUR GAME-SPECIFIC CODE STARTS HERE
+-- ========================================
+
+-- Create your hub window
+local Window = Library:CreateWindow({
+	Name = "Project Beatdown",  -- Change to your game name
+	Game = "v1.0"  -- Change to your version
+})
+
+-- Create tabs
+local MainTab = Window:CreateTab("Main")
+local CombatTab = Window:CreateTab("Combat")
+local FarmTab = Window:CreateTab("Auto Farm")
+local MiscTab = Window:CreateTab("Misc")
+local SettingsTab = Window:CreateTab("Settings")
+
+-- ========================================
+-- MAIN TAB
+-- ========================================
+
+MainTab:CreateSection("Player")
+
+MainTab:CreateButton({
+	Name = "Example Feature 1",
+	Callback = function()
+		_G.Notify.Success("Feature", "Feature 1 activated!")
+		-- Your code here
+	end
+})
+
+MainTab:CreateButton({
+	Name = "Example Feature 2",
+	Callback = function()
+		_G.Notify.Info("Feature", "Feature 2 activated!")
+		-- Your code here
+	end
+})
+
+MainTab:CreateLabel("This is an example game script")
+
+-- ========================================
+-- COMBAT TAB
+-- ========================================
+
+CombatTab:CreateSection("Combat Features")
+
+CombatTab:CreateButton({
+	Name = "Auto Attack",
+	Callback = function()
+		_G.AutoAttack = not _G.AutoAttack
+		if _G.AutoAttack then
+			_G.Notify.Success("Auto Attack", "Enabled")
+			-- Start auto attack loop
+		else
+			_G.Notify.Warning("Auto Attack", "Disabled")
+			-- Stop auto attack
+		end
+	end
+})
+
+-- ========================================
+-- FARM TAB
+-- ========================================
+
+FarmTab:CreateSection("Farming")
+
+FarmTab:CreateButton({
+	Name = "Auto Farm",
+	Callback = function()
+		_G.AutoFarm = not _G.AutoFarm
+		if _G.AutoFarm then
+			_G.Notify.Success("Auto Farm", "Started")
+			-- Start farming
+		else
+			_G.Notify.Warning("Auto Farm", "Stopped")
+			-- Stop farming
+		end
+	end
+})
+
+-- ========================================
+-- MISC TAB
+-- ========================================
+
+MiscTab:CreateSection("Miscellaneous")
+
+MiscTab:CreateButton({
+	Name = "Test Notifications",
+	Callback = function()
+		_G.Notify.Info("Info", "This is an info notification")
+		wait(0.5)
+		_G.Notify.Success("Success", "This is a success notification")
+		wait(0.5)
+		_G.Notify.Warning("Warning", "This is a warning notification")
+		wait(0.5)
+		_G.Notify.Error("Error", "This is an error notification")
+	end
+})
+
+-- ========================================
+-- SETTINGS TAB
+-- ========================================
+
+SettingsTab:CreateSection("Settings")
+
+SettingsTab:CreateButton({
+	Name = "Destroy GUI",
+	Callback = function()
+		_G.Notify.Info("GUI", "Closing in 2 seconds...")
+		wait(2)
+		Window.ScreenGui:Destroy()
+	end
+})
+
+-- Show welcome message
+_G.Notify.Success("Welcome!", "Script loaded successfully")
