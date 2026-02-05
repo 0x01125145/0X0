@@ -223,13 +223,19 @@ function Library:CreateWindow(config)
 	tabLayout.Padding = UDim.new(0, 8)
 	tabLayout.Parent = bottomTabContainer
 	
-	-- Content Container
+	-- Content Container (dark panel on top of gradient)
 	local contentContainer = Instance.new("Frame")
 	contentContainer.Name = "ContentContainer"
 	contentContainer.Size = UDim2.new(1, -20, 1, -145)
 	contentContainer.Position = UDim2.new(0, 10, 0, 65)
-	contentContainer.BackgroundTransparency = 1
+	contentContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+	contentContainer.BackgroundTransparency = 0.3
+	contentContainer.BorderSizePixel = 0
 	contentContainer.Parent = mainFrame
+	
+	local contentCorner = Instance.new("UICorner")
+	contentCorner.CornerRadius = UDim.new(0, 10)
+	contentCorner.Parent = contentContainer
 	
 	-- Dragging functionality
 	local dragging = false
