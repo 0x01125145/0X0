@@ -592,7 +592,16 @@ end
 
 -- Combat section
 Library:CreateSectionHeader("Combat")
-local combatTab = Library:CreateNavButton("Combat", "swords", "image")
+local combatTabButton, combatTab = (function()
+	local tabContent = Library:CreateNavButton("Combat", "swords", "image")
+	local tabButton = Library.Tabs[#Library.Tabs].Button
+	tabButton.MouseButton1Click:Connect(function()
+		if _G.Notify then
+			_G.Notify.Info("Combat Tab", "Combat tab opened!", 3)
+		end
+	end)
+	return tabButton, tabContent
+end)()
 local antiAimTab = Library:CreateNavButton("Anti Aim", "target", "image")
 local legitbotTab = Library:CreateNavButton("Legitbot", "gun", "image")
 
