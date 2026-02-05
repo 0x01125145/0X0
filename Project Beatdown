@@ -8,7 +8,6 @@
     FEATURES AVAILABLE:
     - _G.Notify.Info(title, message, duration)
     - _G.Notify.Success(title, message, duration)
-    - _G.Notify.Warning(title, message, duration)
     - _G.Notify.Error(title, message, duration)
     
     INSTRUCTIONS:
