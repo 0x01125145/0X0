@@ -8,6 +8,7 @@
     FEATURES AVAILABLE:
     - _G.Notify.Info(title, message, duration)
     - _G.Notify.Success(title, message, duration)
+    - _G.Notify.Warning(title, message, duration)
     - _G.Notify.Error(title, message, duration)
     
     INSTRUCTIONS:
@@ -24,6 +25,7 @@
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -35,15 +37,17 @@ function Library:CreateWindow(config)
 	local windowName = config.Name or "Hub"
 	local gameName = config.Game or "Universal"
 	
+	-- Create ScreenGui
 	local screenGui = Instance.new("ScreenGui")
 	screenGui.Name = "MainHub"
 	screenGui.ResetOnSpawn = false
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screenGui.Parent = playerGui
 	
+	-- Main Frame
 	local mainFrame = Instance.new("Frame")
 	mainFrame.Name = "MainFrame"
-	mainFrame.Size = UDim2.new(0, 600, 0, 400)
+	mainFrame.Size = UDim2.new(0, 650, 0, 450)
 	mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 	mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 	mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -51,27 +55,53 @@ function Library:CreateWindow(config)
 	mainFrame.ClipsDescendants = true
 	mainFrame.Parent = screenGui
 	
+	-- Corner rounding
 	local mainCorner = Instance.new("UICorner")
 	mainCorner.CornerRadius = UDim.new(0, 12)
 	mainCorner.Parent = mainFrame
 	
+	-- Border stroke
 	local mainStroke = Instance.new("UIStroke")
-	mainStroke.Color = Color3.fromRGB(100, 150, 255)
+	mainStroke.Color = Color3.fromRGB(255, 50, 50)
 	mainStroke.Thickness = 2
 	mainStroke.Transparency = 0.5
 	mainStroke.Parent = mainFrame
 	
+	-- Animated red neon gradient border (matches loading screen)
+	local mainStrokeGradient = Instance.new("UIGradient")
+	mainStrokeGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+	})
+	mainStrokeGradient.Rotation = 0
+	mainStrokeGradient.Parent = mainStroke
+	
+	-- Animate border gradient rotation
+	task.spawn(function()
+		local strokeGradientRotate = TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+		TweenService:Create(mainStrokeGradient, strokeGradientRotate, {Rotation = 360}):Play()
+	end)
+	
+	-- Gradient background
 	local bgGradient = Instance.new("UIGradient")
 	bgGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 30)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 10, 10)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(55, 15, 15)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(75, 20, 20))
 	})
-	bgGradient.Rotation = 45
+	bgGradient.Rotation = 0
 	bgGradient.Parent = mainFrame
 	
+	-- Animate gradient rotation (matches loading screen)
+	task.spawn(function()
+		local gradientRotate = TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+		TweenService:Create(bgGradient, gradientRotate, {Rotation = 360}):Play()
+	end)
+	
+	-- Top Bar
 	local topBar = Instance.new("Frame")
 	topBar.Name = "TopBar"
-	topBar.Size = UDim2.new(1, 0, 0, 50)
+	topBar.Size = UDim2.new(1, 0, 0, 55)
 	topBar.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 	topBar.BorderSizePixel = 0
 	topBar.Parent = mainFrame
@@ -80,22 +110,24 @@ function Library:CreateWindow(config)
 	topCorner.CornerRadius = UDim.new(0, 12)
 	topCorner.Parent = topBar
 	
+	-- Title
 	local titleLabel = Instance.new("TextLabel")
 	titleLabel.Name = "Title"
-	titleLabel.Size = UDim2.new(0, 200, 1, 0)
-	titleLabel.Position = UDim2.new(0, 20, 0, 0)
+	titleLabel.Size = UDim2.new(0, 250, 0, 25)
+	titleLabel.Position = UDim2.new(0, 20, 0, 8)
 	titleLabel.BackgroundTransparency = 1
 	titleLabel.Text = windowName
 	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	titleLabel.TextSize = 20
+	titleLabel.TextSize = 22
 	titleLabel.Font = Enum.Font.GothamBold
 	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	titleLabel.Parent = topBar
 	
+	-- Game name subtitle
 	local gameLabel = Instance.new("TextLabel")
 	gameLabel.Name = "GameLabel"
-	gameLabel.Size = UDim2.new(0, 200, 0, 15)
-	gameLabel.Position = UDim2.new(0, 20, 0, 30)
+	gameLabel.Size = UDim2.new(0, 250, 0, 15)
+	gameLabel.Position = UDim2.new(0, 20, 0, 34)
 	gameLabel.BackgroundTransparency = 1
 	gameLabel.Text = gameName
 	gameLabel.TextColor3 = Color3.fromRGB(150, 150, 160)
@@ -108,13 +140,12 @@ function Library:CreateWindow(config)
 	local minimizeButton = Instance.new("TextButton")
 	minimizeButton.Name = "MinimizeButton"
 	minimizeButton.Size = UDim2.new(0, 40, 0, 40)
-	minimizeButton.Position = UDim2.new(1, -95, 0, 5)
-	minimizeButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-	minimizeButton.BackgroundTransparency = 0.9
+	minimizeButton.Position = UDim2.new(1, -95, 0, 7)
+	minimizeButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 	minimizeButton.BorderSizePixel = 0
-	minimizeButton.Text = "-"
-	minimizeButton.TextColor3 = Color3.fromRGB(100, 150, 255)
-	minimizeButton.TextSize = 24
+	minimizeButton.Text = "−"
+	minimizeButton.TextColor3 = Color3.fromRGB(255, 80, 80)
+	minimizeButton.TextSize = 22
 	minimizeButton.Font = Enum.Font.GothamBold
 	minimizeButton.Parent = topBar
 	
@@ -122,17 +153,22 @@ function Library:CreateWindow(config)
 	minimizeCorner.CornerRadius = UDim.new(0, 8)
 	minimizeCorner.Parent = minimizeButton
 	
+	local minimizeStroke = Instance.new("UIStroke")
+	minimizeStroke.Color = Color3.fromRGB(255, 50, 50)
+	minimizeStroke.Thickness = 1
+	minimizeStroke.Transparency = 0.7
+	minimizeStroke.Parent = minimizeButton
+	
 	-- Close Button
 	local closeButton = Instance.new("TextButton")
 	closeButton.Name = "CloseButton"
 	closeButton.Size = UDim2.new(0, 40, 0, 40)
-	closeButton.Position = UDim2.new(1, -50, 0, 5)
-	closeButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-	closeButton.BackgroundTransparency = 0.9
+	closeButton.Position = UDim2.new(1, -50, 0, 7)
+	closeButton.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 	closeButton.BorderSizePixel = 0
 	closeButton.Text = "×"
 	closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-	closeButton.TextSize = 24
+	closeButton.TextSize = 26
 	closeButton.Font = Enum.Font.GothamBold
 	closeButton.Parent = topBar
 	
@@ -140,43 +176,73 @@ function Library:CreateWindow(config)
 	closeCorner.CornerRadius = UDim.new(0, 8)
 	closeCorner.Parent = closeButton
 	
-	local tabContainer = Instance.new("Frame")
-	tabContainer.Name = "TabContainer"
-	tabContainer.Size = UDim2.new(0, 150, 1, -60)
-	tabContainer.Position = UDim2.new(0, 10, 0, 60)
-	tabContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-	tabContainer.BorderSizePixel = 0
-	tabContainer.Parent = mainFrame
+	local closeStroke = Instance.new("UIStroke")
+	closeStroke.Color = Color3.fromRGB(255, 100, 100)
+	closeStroke.Thickness = 1
+	closeStroke.Transparency = 0.7
+	closeStroke.Parent = closeButton
 	
-	local tabCorner = Instance.new("UICorner")
-	tabCorner.CornerRadius = UDim.new(0, 8)
-	tabCorner.Parent = tabContainer
+	-- Bottom Tab Container (Mobile-style bottom navigation)
+	local bottomTabContainer = Instance.new("Frame")
+	bottomTabContainer.Name = "BottomTabContainer"
+	bottomTabContainer.Size = UDim2.new(1, -20, 0, 60)
+	bottomTabContainer.Position = UDim2.new(0, 10, 1, -70)
+	bottomTabContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+	bottomTabContainer.BorderSizePixel = 0
+	bottomTabContainer.Parent = mainFrame
+	
+	local bottomCorner = Instance.new("UICorner")
+	bottomCorner.CornerRadius = UDim.new(0, 10)
+	bottomCorner.Parent = bottomTabContainer
+	
+	local bottomStroke = Instance.new("UIStroke")
+	bottomStroke.Color = Color3.fromRGB(255, 50, 50)
+	bottomStroke.Thickness = 1
+	bottomStroke.Transparency = 0.7
+	bottomStroke.Parent = bottomTabContainer
+	
+	-- Animated gradient on bottom bar
+	local bottomGradient = Instance.new("UIGradient")
+	bottomGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+	})
+	bottomGradient.Rotation = 0
+	bottomGradient.Parent = bottomStroke
+	
+	-- Animate bottom border gradient rotation (matches loading screen)
+	task.spawn(function()
+		local bottomGradientRotate = TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+		TweenService:Create(bottomGradient, bottomGradientRotate, {Rotation = 360}):Play()
+	end)
 	
 	local tabLayout = Instance.new("UIListLayout")
-	tabLayout.Padding = UDim.new(0, 5)
-	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	tabLayout.Parent = tabContainer
+	tabLayout.FillDirection = Enum.FillDirection.Horizontal
+	tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	tabLayout.Padding = UDim.new(0, 8)
+	tabLayout.Parent = bottomTabContainer
 	
-	local tabPadding = Instance.new("UIPadding")
-	tabPadding.PaddingTop = UDim.new(0, 10)
-	tabPadding.PaddingLeft = UDim.new(0, 10)
-	tabPadding.PaddingRight = UDim.new(0, 10)
-	tabPadding.Parent = tabContainer
-	
+	-- Content Container
 	local contentContainer = Instance.new("Frame")
 	contentContainer.Name = "ContentContainer"
-	contentContainer.Size = UDim2.new(1, -180, 1, -70)
-	contentContainer.Position = UDim2.new(0, 170, 0, 60)
+	contentContainer.Size = UDim2.new(1, -20, 1, -145)
+	contentContainer.Position = UDim2.new(0, 10, 0, 65)
 	contentContainer.BackgroundTransparency = 1
 	contentContainer.Parent = mainFrame
 	
-	-- Dragging
+	-- Dragging functionality
 	local dragging = false
 	local dragInput, dragStart, startPos
 	
 	local function update(input)
 		local delta = input.Position - dragStart
-		mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		mainFrame.Position = UDim2.new(
+			startPos.X.Scale, 
+			startPos.X.Offset + delta.X, 
+			startPos.Y.Scale, 
+			startPos.Y.Offset + delta.Y
+		)
 	end
 	
 	topBar.InputBegan:Connect(function(input)
@@ -205,107 +271,285 @@ function Library:CreateWindow(config)
 	
 	minimizeButton.MouseButton1Click:Connect(function()
 		isMinimized = not isMinimized
-		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		
 		if isMinimized then
-			TweenService:Create(mainFrame, tweenInfo, {Size = UDim2.new(0, 600, 0, 50)}):Play()
+			TweenService:Create(mainFrame, tweenInfo, {Size = UDim2.new(0, 650, 0, 55)}):Play()
 			minimizeButton.Text = "+"
 		else
 			TweenService:Create(mainFrame, tweenInfo, {Size = originalSize}):Play()
-			minimizeButton.Text = "-"
+			minimizeButton.Text = "−"
 		end
+	end)
+	
+	-- Hover effects for buttons
+	minimizeButton.MouseEnter:Connect(function()
+		TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+		TweenService:Create(minimizeButton, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+	end)
+	
+	minimizeButton.MouseLeave:Connect(function()
+		TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 40)}):Play()
+		TweenService:Create(minimizeButton, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+	end)
+	
+	closeButton.MouseEnter:Connect(function()
+		TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 100, 100)}):Play()
+		TweenService:Create(closeButton, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+	end)
+	
+	closeButton.MouseLeave:Connect(function()
+		TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 40)}):Play()
+		TweenService:Create(closeButton, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(255, 100, 100)}):Play()
 	end)
 	
 	-- Close functionality
 	closeButton.MouseButton1Click:Connect(function()
-		local fadeOut = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-		TweenService:Create(mainFrame, fadeOut, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}):Play()
+		local fadeOut = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+		TweenService:Create(mainFrame, fadeOut, {Size = UDim2.new(0, 0, 0, 0)}):Play()
+		TweenService:Create(mainStroke, fadeOut, {Transparency = 1}):Play()
 		wait(0.3)
 		screenGui:Destroy()
 	end)
 	
-	local Window = {Tabs = {}, CurrentTab = nil, MainFrame = mainFrame, ScreenGui = screenGui}
+	local Window = {
+		Tabs = {}, 
+		CurrentTab = nil, 
+		MainFrame = mainFrame, 
+		ScreenGui = screenGui,
+		BottomTabContainer = bottomTabContainer
+	}
 	
-	function Window:CreateTab(tabName)
-		local Tab = {Name = tabName, Elements = {}, Container = nil, Button = nil}
+	function Window:CreateTab(tabName, icon)
+		icon = icon or "📁"
+		local Tab = {Name = tabName, Elements = {}, Container = nil, Button = nil, Icon = icon}
 		
+		-- Calculate tab width based on number of tabs
+		local function updateTabSizes()
+			local tabCount = #Window.Tabs
+			local maxTabs = 6
+			local tabWidth = math.min(100, (bottomTabContainer.AbsoluteSize.X - (tabCount + 1) * 8) / tabCount)
+			
+			for _, tab in pairs(Window.Tabs) do
+				if tab.Button then
+					tab.Button.Size = UDim2.new(0, tabWidth, 0, 50)
+				end
+			end
+		end
+		
+		-- Tab Button (Bottom nav style)
 		local tabButton = Instance.new("TextButton")
 		tabButton.Name = tabName
-		tabButton.Size = UDim2.new(1, 0, 0, 35)
+		tabButton.Size = UDim2.new(0, 100, 0, 50)
 		tabButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 		tabButton.BorderSizePixel = 0
-		tabButton.Text = tabName
-		tabButton.TextColor3 = Color3.fromRGB(200, 200, 210)
-		tabButton.TextSize = 14
-		tabButton.Font = Enum.Font.GothamMedium
-		tabButton.Parent = tabContainer
+		tabButton.Text = ""
+		tabButton.AutoButtonColor = false
+		tabButton.Parent = bottomTabContainer
 		
 		local btnCorner = Instance.new("UICorner")
-		btnCorner.CornerRadius = UDim.new(0, 6)
+		btnCorner.CornerRadius = UDim.new(0, 8)
 		btnCorner.Parent = tabButton
 		
-		Tab.Button = tabButton
+		local btnStroke = Instance.new("UIStroke")
+		btnStroke.Color = Color3.fromRGB(255, 50, 50)
+		btnStroke.Thickness = 1
+		btnStroke.Transparency = 0.8
+		btnStroke.Parent = tabButton
 		
+		-- Icon label
+		local iconLabel = Instance.new("TextLabel")
+		iconLabel.Name = "Icon"
+		iconLabel.Size = UDim2.new(1, 0, 0, 20)
+		iconLabel.Position = UDim2.new(0, 0, 0, 8)
+		iconLabel.BackgroundTransparency = 1
+		iconLabel.Text = icon
+		iconLabel.TextColor3 = Color3.fromRGB(180, 180, 190)
+		iconLabel.TextSize = 18
+		iconLabel.Font = Enum.Font.GothamBold
+		iconLabel.Parent = tabButton
+		
+		-- Text label
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Name = "Text"
+		textLabel.Size = UDim2.new(1, 0, 0, 15)
+		textLabel.Position = UDim2.new(0, 0, 0, 30)
+		textLabel.BackgroundTransparency = 1
+		textLabel.Text = tabName
+		textLabel.TextColor3 = Color3.fromRGB(180, 180, 190)
+		textLabel.TextSize = 11
+		textLabel.Font = Enum.Font.GothamMedium
+		textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+		textLabel.Parent = tabButton
+		
+		Tab.Button = tabButton
+		Tab.IconLabel = iconLabel
+		Tab.TextLabel = textLabel
+		
+		-- Tab Content (Scrolling Frame)
 		local tabContent = Instance.new("ScrollingFrame")
 		tabContent.Name = tabName .. "Content"
 		tabContent.Size = UDim2.new(1, 0, 1, 0)
 		tabContent.BackgroundTransparency = 1
 		tabContent.BorderSizePixel = 0
 		tabContent.ScrollBarThickness = 4
-		tabContent.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
+		tabContent.ScrollBarImageColor3 = Color3.fromRGB(255, 80, 80)
+		tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+		tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		tabContent.Visible = false
 		tabContent.Parent = contentContainer
 		
 		local contentLayout = Instance.new("UIListLayout")
-		contentLayout.Padding = UDim.new(0, 8)
+		contentLayout.Padding = UDim.new(0, 10)
 		contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 		contentLayout.Parent = tabContent
 		
 		local contentPadding = Instance.new("UIPadding")
 		contentPadding.PaddingTop = UDim.new(0, 10)
 		contentPadding.PaddingLeft = UDim.new(0, 10)
-		contentPadding.PaddingRight = UDim.new(0, 10)
+		contentPadding.PaddingRight = UDim.new(0, 15)
 		contentPadding.PaddingBottom = UDim.new(0, 10)
 		contentPadding.Parent = tabContent
 		
 		Tab.Container = tabContent
 		
+		-- Tab Click Handler
 		tabButton.MouseButton1Click:Connect(function()
 			for _, tab in pairs(Window.Tabs) do
 				tab.Container.Visible = false
-				tab.Button.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-				tab.Button.TextColor3 = Color3.fromRGB(200, 200, 210)
+				TweenService:Create(tab.Button, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+					BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+				}):Play()
+				TweenService:Create(tab.IconLabel, TweenInfo.new(0.3), {
+					TextColor3 = Color3.fromRGB(180, 180, 190)
+				}):Play()
+				TweenService:Create(tab.TextLabel, TweenInfo.new(0.3), {
+					TextColor3 = Color3.fromRGB(180, 180, 190)
+				}):Play()
+				tab.Button:FindFirstChild("UIStroke").Transparency = 0.8
 			end
 			
 			tabContent.Visible = true
-			tabButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-			tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TweenService:Create(tabButton, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+				BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+			}):Play()
+			TweenService:Create(iconLabel, TweenInfo.new(0.3), {
+				TextColor3 = Color3.fromRGB(255, 255, 255)
+			}):Play()
+			TweenService:Create(textLabel, TweenInfo.new(0.3), {
+				TextColor3 = Color3.fromRGB(255, 255, 255)
+			}):Play()
+			btnStroke.Transparency = 0.3
 			Window.CurrentTab = Tab
 		end)
 		
+		-- Hover effects
+		tabButton.MouseEnter:Connect(function()
+			if Window.CurrentTab ~= Tab then
+				TweenService:Create(tabButton, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+				}):Play()
+			end
+		end)
+		
+		tabButton.MouseLeave:Connect(function()
+			if Window.CurrentTab ~= Tab then
+				TweenService:Create(tabButton, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+				}):Play()
+			end
+		end)
+		
+		-- Set first tab as active
 		if #Window.Tabs == 0 then
 			tabContent.Visible = true
-			tabButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-			tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+			tabButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+			iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			btnStroke.Transparency = 0.3
 			Window.CurrentTab = Tab
 		end
 		
 		table.insert(Window.Tabs, Tab)
+		updateTabSizes()
 		
-		-- NOTE: For full UI elements (Toggle, Slider, Dropdown), 
-		-- copy them from MainHub.lua to keep this template short
+		-- UI ELEMENTS --
+		
+		function Tab:CreateSection(name)
+			local sectionFrame = Instance.new("Frame")
+			sectionFrame.Name = "Section"
+			sectionFrame.Size = UDim2.new(1, 0, 0, 35)
+			sectionFrame.BackgroundTransparency = 1
+			sectionFrame.Parent = tabContent
+			
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, 0, 1, 0)
+			label.BackgroundTransparency = 1
+			label.Text = name
+			label.TextColor3 = Color3.fromRGB(255, 80, 80)
+			label.TextSize = 16
+			label.Font = Enum.Font.GothamBold
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.Parent = sectionFrame
+			
+			local divider = Instance.new("Frame")
+			divider.Size = UDim2.new(1, 0, 0, 1)
+			divider.Position = UDim2.new(0, 0, 1, -5)
+			divider.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+			divider.BackgroundTransparency = 0.7
+			divider.BorderSizePixel = 0
+			divider.Parent = sectionFrame
+			
+			return {Frame = sectionFrame}
+		end
+		
+		function Tab:CreateLabel(text)
+			local labelFrame = Instance.new("Frame")
+			labelFrame.Name = "Label"
+			labelFrame.Size = UDim2.new(1, 0, 0, 25)
+			labelFrame.BackgroundTransparency = 1
+			labelFrame.Parent = tabContent
+			
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.new(1, 0, 1, 0)
+			label.BackgroundTransparency = 1
+			label.Text = text
+			label.TextColor3 = Color3.fromRGB(180, 180, 190)
+			label.TextSize = 13
+			label.Font = Enum.Font.Gotham
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.TextWrapped = true
+			label.Parent = labelFrame
+			
+			return {Frame = labelFrame, Label = label}
+		end
 		
 		function Tab:CreateButton(config)
 			config = config or {}
 			local buttonFrame = Instance.new("Frame")
-			buttonFrame.Size = UDim2.new(1, 0, 0, 40)
+			buttonFrame.Name = "Button"
+			buttonFrame.Size = UDim2.new(1, 0, 0, 45)
 			buttonFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
 			buttonFrame.BorderSizePixel = 0
 			buttonFrame.Parent = tabContent
 			
 			local corner = Instance.new("UICorner")
-			corner.CornerRadius = UDim.new(0, 8)
+			corner.CornerRadius = UDim.new(0, 10)
 			corner.Parent = buttonFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = buttonFrame
+			
+			local gradient = Instance.new("UIGradient")
+			gradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 45)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 40))
+			})
+			gradient.Rotation = 45
+			gradient.Parent = buttonFrame
 			
 			local button = Instance.new("TextButton")
 			button.Size = UDim2.new(1, 0, 1, 0)
@@ -316,46 +560,730 @@ function Library:CreateWindow(config)
 			button.Font = Enum.Font.GothamMedium
 			button.Parent = buttonFrame
 			
+			-- Click animation
 			button.MouseButton1Click:Connect(function()
-				TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 150, 255)}):Play()
-				wait(0.1)
-				TweenService:Create(buttonFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(30, 30, 40)}):Play()
-				if config.Callback then config.Callback() end
+				TweenService:Create(buttonFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+					BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+				}):Play()
+				TweenService:Create(stroke, TweenInfo.new(0.15), {Transparency = 0.3}):Play()
+				
+				task.wait(0.15)
+				
+				TweenService:Create(buttonFrame, TweenInfo.new(0.15), {
+					BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+				}):Play()
+				TweenService:Create(stroke, TweenInfo.new(0.15), {Transparency = 0.8}):Play()
+				
+				if config.Callback then 
+					pcall(config.Callback) 
+				end
 			end)
 			
-			return {Frame = buttonFrame}
+			-- Hover effect
+			button.MouseEnter:Connect(function()
+				TweenService:Create(buttonFrame, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+				}):Play()
+				TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0.5}):Play()
+			end)
+			
+			button.MouseLeave:Connect(function()
+				TweenService:Create(buttonFrame, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+				}):Play()
+				TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0.8}):Play()
+			end)
+			
+			return {Frame = buttonFrame, Button = button}
 		end
 		
-		function Tab:CreateLabel(text)
-			local label = Instance.new("TextLabel")
-			label.Size = UDim2.new(1, 0, 0, 30)
-			label.BackgroundTransparency = 1
-			label.Text = text
-			label.TextColor3 = Color3.fromRGB(180, 180, 190)
-			label.TextSize = 13
-			label.Font = Enum.Font.Gotham
-			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.Parent = tabContent
-			return {Label = label}
+		function Tab:CreateToggle(config)
+			config = config or {}
+			local toggleValue = config.Default or false
+			
+			local toggleFrame = Instance.new("Frame")
+			toggleFrame.Name = "Toggle"
+			toggleFrame.Size = UDim2.new(1, 0, 0, 45)
+			toggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			toggleFrame.BorderSizePixel = 0
+			toggleFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = toggleFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = toggleFrame
+			
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(1, -70, 1, 0)
+			nameLabel.Position = UDim2.new(0, 15, 0, 0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = config.Name or "Toggle"
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			nameLabel.TextSize = 14
+			nameLabel.Font = Enum.Font.GothamMedium
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = toggleFrame
+			
+			-- Toggle Switch Background
+			local toggleBg = Instance.new("Frame")
+			toggleBg.Name = "ToggleBg"
+			toggleBg.Size = UDim2.new(0, 50, 0, 26)
+			toggleBg.Position = UDim2.new(1, -60, 0.5, -13)
+			toggleBg.BackgroundColor3 = toggleValue and Color3.fromRGB(255, 80, 80) or Color3.fromRGB(40, 40, 50)
+			toggleBg.BorderSizePixel = 0
+			toggleBg.Parent = toggleFrame
+			
+			local toggleBgCorner = Instance.new("UICorner")
+			toggleBgCorner.CornerRadius = UDim.new(1, 0)
+			toggleBgCorner.Parent = toggleBg
+			
+			-- Toggle Circle
+			local toggleCircle = Instance.new("Frame")
+			toggleCircle.Name = "Circle"
+			toggleCircle.Size = UDim2.new(0, 20, 0, 20)
+			toggleCircle.Position = toggleValue and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+			toggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			toggleCircle.BorderSizePixel = 0
+			toggleCircle.Parent = toggleBg
+			
+			local circleCorner = Instance.new("UICorner")
+			circleCorner.CornerRadius = UDim.new(1, 0)
+			circleCorner.Parent = toggleCircle
+			
+			-- Toggle Button
+			local toggleButton = Instance.new("TextButton")
+			toggleButton.Size = UDim2.new(1, 0, 1, 0)
+			toggleButton.BackgroundTransparency = 1
+			toggleButton.Text = ""
+			toggleButton.Parent = toggleFrame
+			
+			toggleButton.MouseButton1Click:Connect(function()
+				toggleValue = not toggleValue
+				
+				local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+				
+				if toggleValue then
+					TweenService:Create(toggleBg, tweenInfo, {
+						BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+					}):Play()
+					TweenService:Create(toggleCircle, tweenInfo, {
+						Position = UDim2.new(1, -23, 0.5, -10)
+					}):Play()
+				else
+					TweenService:Create(toggleBg, tweenInfo, {
+						BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+					}):Play()
+					TweenService:Create(toggleCircle, tweenInfo, {
+						Position = UDim2.new(0, 3, 0.5, -10)
+					}):Play()
+				end
+				
+				if config.Callback then
+					pcall(function() config.Callback(toggleValue) end)
+				end
+			end)
+			
+			-- Hover effect
+			toggleButton.MouseEnter:Connect(function()
+				TweenService:Create(toggleFrame, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+				}):Play()
+			end)
+			
+			toggleButton.MouseLeave:Connect(function()
+				TweenService:Create(toggleFrame, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+				}):Play()
+			end)
+			
+			return {Frame = toggleFrame, Value = toggleValue, Set = function(val)
+				toggleValue = val
+				local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad)
+				if val then
+					TweenService:Create(toggleBg, tweenInfo, {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+					TweenService:Create(toggleCircle, tweenInfo, {Position = UDim2.new(1, -23, 0.5, -10)}):Play()
+				else
+					TweenService:Create(toggleBg, tweenInfo, {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+					TweenService:Create(toggleCircle, tweenInfo, {Position = UDim2.new(0, 3, 0.5, -10)}):Play()
+				end
+			end}
 		end
 		
-		function Tab:CreateSection(name)
-			local frame = Instance.new("Frame")
-			frame.Size = UDim2.new(1, 0, 0, 35)
-			frame.BackgroundTransparency = 1
-			frame.Parent = tabContent
+		function Tab:CreateSlider(config)
+			config = config or {}
+			local min = config.Min or 0
+			local max = config.Max or 100
+			local default = config.Default or min
+			local increment = config.Increment or 1
+			local callback = config.Callback or function() end
 			
-			local label = Instance.new("TextLabel")
-			label.Size = UDim2.new(1, 0, 1, 0)
-			label.BackgroundTransparency = 1
-			label.Text = name
-			label.TextColor3 = Color3.fromRGB(100, 150, 255)
-			label.TextSize = 16
-			label.Font = Enum.Font.GothamBold
-			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.Parent = frame
+			local sliderValue = default
 			
-			return {Frame = frame}
+			local sliderFrame = Instance.new("Frame")
+			sliderFrame.Name = "Slider"
+			sliderFrame.Size = UDim2.new(1, 0, 0, 60)
+			sliderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			sliderFrame.BorderSizePixel = 0
+			sliderFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = sliderFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = sliderFrame
+			
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(1, -70, 0, 20)
+			nameLabel.Position = UDim2.new(0, 15, 0, 10)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = config.Name or "Slider"
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			nameLabel.TextSize = 14
+			nameLabel.Font = Enum.Font.GothamMedium
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = sliderFrame
+			
+			local valueLabel = Instance.new("TextLabel")
+			valueLabel.Size = UDim2.new(0, 60, 0, 20)
+			valueLabel.Position = UDim2.new(1, -70, 0, 10)
+			valueLabel.BackgroundTransparency = 1
+			valueLabel.Text = tostring(sliderValue)
+			valueLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+			valueLabel.TextSize = 14
+			valueLabel.Font = Enum.Font.GothamBold
+			valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+			valueLabel.Parent = sliderFrame
+			
+			-- Slider Bar Background
+			local sliderBg = Instance.new("Frame")
+			sliderBg.Name = "SliderBg"
+			sliderBg.Size = UDim2.new(1, -30, 0, 6)
+			sliderBg.Position = UDim2.new(0, 15, 1, -18)
+			sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+			sliderBg.BorderSizePixel = 0
+			sliderBg.Parent = sliderFrame
+			
+			local sliderBgCorner = Instance.new("UICorner")
+			sliderBgCorner.CornerRadius = UDim.new(1, 0)
+			sliderBgCorner.Parent = sliderBg
+			
+			-- Slider Fill
+			local sliderFill = Instance.new("Frame")
+			sliderFill.Name = "Fill"
+			sliderFill.Size = UDim2.new((sliderValue - min) / (max - min), 0, 1, 0)
+			sliderFill.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+			sliderFill.BorderSizePixel = 0
+			sliderFill.Parent = sliderBg
+			
+			local fillCorner = Instance.new("UICorner")
+			fillCorner.CornerRadius = UDim.new(1, 0)
+			fillCorner.Parent = sliderFill
+			
+			local fillGradient = Instance.new("UIGradient")
+			fillGradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 100))
+			})
+			fillGradient.Parent = sliderFill
+			
+			-- Slider Handle
+			local sliderDot = Instance.new("Frame")
+			sliderDot.Name = "Handle"
+			sliderDot.Size = UDim2.new(0, 16, 0, 16)
+			sliderDot.Position = UDim2.new((sliderValue - min) / (max - min), -8, 0.5, -8)
+			sliderDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			sliderDot.BorderSizePixel = 0
+			sliderDot.Parent = sliderBg
+			
+			local dotCorner = Instance.new("UICorner")
+			dotCorner.CornerRadius = UDim.new(1, 0)
+			dotCorner.Parent = sliderDot
+			
+			local dotStroke = Instance.new("UIStroke")
+			dotStroke.Color = Color3.fromRGB(255, 80, 80)
+			dotStroke.Thickness = 2
+			dotStroke.Parent = sliderDot
+			
+			local dragging = false
+			
+			local function updateSlider(input)
+				local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+				sliderValue = math.floor(min + (max - min) * pos / increment + 0.5) * increment
+				sliderValue = math.clamp(sliderValue, min, max)
+				
+				valueLabel.Text = tostring(sliderValue)
+				sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+				sliderDot.Position = UDim2.new(pos, -8, 0.5, -8)
+				
+				pcall(function() callback(sliderValue) end)
+			end
+			
+			sliderBg.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = true
+					updateSlider(input)
+				end
+			end)
+			
+			sliderBg.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					dragging = false
+				end
+			end)
+			
+			UserInputService.InputChanged:Connect(function(input)
+				if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+					updateSlider(input)
+				end
+			end)
+			
+			return {Frame = sliderFrame, Value = sliderValue, Set = function(val)
+				sliderValue = math.clamp(val, min, max)
+				local pos = (sliderValue - min) / (max - min)
+				valueLabel.Text = tostring(sliderValue)
+				sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+				sliderDot.Position = UDim2.new(pos, -8, 0.5, -8)
+			end}
+		end
+		
+		function Tab:CreateDropdown(config)
+			config = config or {}
+			local options = config.Options or {"Option 1", "Option 2"}
+			local default = config.Default or options[1]
+			local callback = config.Callback or function() end
+			
+			local selectedValue = default
+			local isOpen = false
+			
+			local dropdownFrame = Instance.new("Frame")
+			dropdownFrame.Name = "Dropdown"
+			dropdownFrame.Size = UDim2.new(1, 0, 0, 45)
+			dropdownFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			dropdownFrame.BorderSizePixel = 0
+			dropdownFrame.ClipsDescendants = false
+			dropdownFrame.ZIndex = 2
+			dropdownFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = dropdownFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = dropdownFrame
+			
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(0.5, -15, 1, 0)
+			nameLabel.Position = UDim2.new(0, 15, 0, 0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = config.Name or "Dropdown"
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			nameLabel.TextSize = 14
+			nameLabel.Font = Enum.Font.GothamMedium
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = dropdownFrame
+			
+			local valueDisplay = Instance.new("TextLabel")
+			valueDisplay.Size = UDim2.new(0.5, -40, 1, 0)
+			valueDisplay.Position = UDim2.new(0.5, 0, 0, 0)
+			valueDisplay.BackgroundTransparency = 1
+			valueDisplay.Text = selectedValue
+			valueDisplay.TextColor3 = Color3.fromRGB(255, 80, 80)
+			valueDisplay.TextSize = 13
+			valueDisplay.Font = Enum.Font.Gotham
+			valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
+			valueDisplay.TextTruncate = Enum.TextTruncate.AtEnd
+			valueDisplay.Parent = dropdownFrame
+			
+			local arrow = Instance.new("TextLabel")
+			arrow.Size = UDim2.new(0, 20, 1, 0)
+			arrow.Position = UDim2.new(1, -30, 0, 0)
+			arrow.BackgroundTransparency = 1
+			arrow.Text = "▼"
+			arrow.TextColor3 = Color3.fromRGB(255, 80, 80)
+			arrow.TextSize = 12
+			arrow.Font = Enum.Font.GothamBold
+			arrow.Parent = dropdownFrame
+			
+			-- Options Container
+			local optionsContainer = Instance.new("Frame")
+			optionsContainer.Name = "Options"
+			optionsContainer.Size = UDim2.new(1, 0, 0, 0)
+			optionsContainer.Position = UDim2.new(0, 0, 1, 5)
+			optionsContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+			optionsContainer.BorderSizePixel = 0
+			optionsContainer.ClipsDescendants = true
+			optionsContainer.Visible = false
+			optionsContainer.ZIndex = 3
+			optionsContainer.Parent = dropdownFrame
+			
+			local optionsCorner = Instance.new("UICorner")
+			optionsCorner.CornerRadius = UDim.new(0, 8)
+			optionsCorner.Parent = optionsContainer
+			
+			local optionsStroke = Instance.new("UIStroke")
+			optionsStroke.Color = Color3.fromRGB(255, 50, 50)
+			optionsStroke.Thickness = 1
+			options.Transparency = 0.7
+			optionsStroke.Parent = optionsContainer
+			
+			local optionsLayout = Instance.new("UIListLayout")
+			optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			optionsLayout.Parent = optionsContainer
+			
+			-- Create option buttons
+			for _, optionText in ipairs(options) do
+				local optionButton = Instance.new("TextButton")
+				optionButton.Size = UDim2.new(1, 0, 0, 35)
+				optionButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+				optionButton.BorderSizePixel = 0
+				optionButton.Text = optionText
+				optionButton.TextColor3 = Color3.fromRGB(200, 200, 210)
+				optionButton.TextSize = 13
+				optionButton.Font = Enum.Font.Gotham
+				optionButton.ZIndex = 4
+				optionButton.Parent = optionsContainer
+				
+				local optionCorner = Instance.new("UICorner")
+				optionCorner.CornerRadius = UDim.new(0, 6)
+				optionCorner.Parent = optionButton
+				
+				optionButton.MouseButton1Click:Connect(function()
+					selectedValue = optionText
+					valueDisplay.Text = optionText
+					
+					-- Close dropdown
+					isOpen = false
+					TweenService:Create(optionsContainer, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+						Size = UDim2.new(1, 0, 0, 0)
+					}):Play()
+					TweenService:Create(arrow, TweenInfo.new(0.3), {
+						Rotation = 0
+					}):Play()
+					task.wait(0.3)
+					optionsContainer.Visible = false
+					
+					pcall(function() callback(optionText) end)
+				end)
+				
+				optionButton.MouseEnter:Connect(function()
+					TweenService:Create(optionButton, TweenInfo.new(0.2), {
+						BackgroundColor3 = Color3.fromRGB(255, 50, 50),
+						TextColor3 = Color3.fromRGB(255, 255, 255)
+					}):Play()
+				end)
+				
+				optionButton.MouseLeave:Connect(function()
+					TweenService:Create(optionButton, TweenInfo.new(0.2), {
+						BackgroundColor3 = Color3.fromRGB(25, 25, 35),
+						TextColor3 = Color3.fromRGB(200, 200, 210)
+					}):Play()
+				end)
+			end
+			
+			-- Toggle dropdown
+			local toggleButton = Instance.new("TextButton")
+			toggleButton.Size = UDim2.new(1, 0, 1, 0)
+			toggleButton.BackgroundTransparency = 1
+			toggleButton.Text = ""
+			toggleButton.ZIndex = 2
+			toggleButton.Parent = dropdownFrame
+			
+			toggleButton.MouseButton1Click:Connect(function()
+				isOpen = not isOpen
+				
+				if isOpen then
+					optionsContainer.Visible = true
+					optionsContainer.Size = UDim2.new(1, 0, 0, 0)
+					TweenService:Create(optionsContainer, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+						Size = UDim2.new(1, 0, 0, #options * 35)
+					}):Play()
+					TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 180}):Play()
+				else
+					TweenService:Create(optionsContainer, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+						Size = UDim2.new(1, 0, 0, 0)
+					}):Play()
+					TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
+					task.wait(0.3)
+					optionsContainer.Visible = false
+				end
+			end)
+			
+			return {Frame = dropdownFrame, Value = selectedValue}
+		end
+		
+		function Tab:CreateTextbox(config)
+			config = config or {}
+			local placeholder = config.Placeholder or "Enter text..."
+			local default = config.Default or ""
+			local callback = config.Callback or function() end
+			
+			local textboxFrame = Instance.new("Frame")
+			textboxFrame.Name = "Textbox"
+			textboxFrame.Size = UDim2.new(1, 0, 0, 45)
+			textboxFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			textboxFrame.BorderSizePixel = 0
+			textboxFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = textboxFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = textboxFrame
+			
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(0, 100, 1, 0)
+			nameLabel.Position = UDim2.new(0, 15, 0, 0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = config.Name or "Textbox"
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			nameLabel.TextSize = 14
+			nameLabel.Font = Enum.Font.GothamMedium
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = textboxFrame
+			
+			local textbox = Instance.new("TextBox")
+			textbox.Size = UDim2.new(1, -130, 0, 30)
+			textbox.Position = UDim2.new(0, 115, 0.5, -15)
+			textbox.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+			textbox.BorderSizePixel = 0
+			textbox.Text = default
+			textbox.PlaceholderText = placeholder
+			textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+			textbox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+			textbox.TextSize = 13
+			textbox.Font = Enum.Font.Gotham
+			textbox.ClearTextOnFocus = false
+			textbox.Parent = textboxFrame
+			
+			local textboxCorner = Instance.new("UICorner")
+			textboxCorner.CornerRadius = UDim.new(0, 6)
+			textboxCorner.Parent = textbox
+			
+			local textboxPadding = Instance.new("UIPadding")
+			textboxPadding.PaddingLeft = UDim.new(0, 10)
+			textboxPadding.PaddingRight = UDim.new(0, 10)
+			textboxPadding.Parent = textbox
+			
+			textbox.FocusLost:Connect(function(enterPressed)
+				if enterPressed then
+					pcall(function() callback(textbox.Text) end)
+				end
+			end)
+			
+			textbox.Focused:Connect(function()
+				TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
+			end)
+			
+			textbox.FocusLost:Connect(function()
+				TweenService:Create(stroke, TweenInfo.new(0.2), {Transparency = 0.8}):Play()
+			end)
+			
+			return {Frame = textboxFrame, Textbox = textbox}
+		end
+		
+		function Tab:CreateKeybind(config)
+			config = config or {}
+			local default = config.Default or Enum.KeyCode.E
+			local callback = config.Callback or function() end
+			
+			local currentKey = default
+			local listening = false
+			
+			local keybindFrame = Instance.new("Frame")
+			keybindFrame.Name = "Keybind"
+			keybindFrame.Size = UDim2.new(1, 0, 0, 45)
+			keybindFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			keybindFrame.BorderSizePixel = 0
+			keybindFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = keybindFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = keybindFrame
+			
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(0.6, 0, 1, 0)
+			nameLabel.Position = UDim2.new(0, 15, 0, 0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = config.Name or "Keybind"
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			nameLabel.TextSize = 14
+			nameLabel.Font = Enum.Font.GothamMedium
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = keybindFrame
+			
+			local keyButton = Instance.new("TextButton")
+			keyButton.Size = UDim2.new(0, 80, 0, 30)
+			keyButton.Position = UDim2.new(1, -95, 0.5, -15)
+			keyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+			keyButton.BorderSizePixel = 0
+			keyButton.Text = currentKey.Name
+			keyButton.TextColor3 = Color3.fromRGB(255, 80, 80)
+			keyButton.TextSize = 13
+			keyButton.Font = Enum.Font.GothamBold
+			keyButton.Parent = keybindFrame
+			
+			local keyCorner = Instance.new("UICorner")
+			keyCorner.CornerRadius = UDim.new(0, 6)
+			keyCorner.Parent = keyButton
+			
+			local keyStroke = Instance.new("UIStroke")
+			keyStroke.Color = Color3.fromRGB(255, 50, 50)
+			keyStroke.Thickness = 1
+			keyStroke.Transparency = 0.7
+			keyStroke.Parent = keyButton
+			
+			keyButton.MouseButton1Click:Connect(function()
+				listening = true
+				keyButton.Text = "..."
+				TweenService:Create(keyButton, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(255, 50, 50),
+					TextColor3 = Color3.fromRGB(255, 255, 255)
+				}):Play()
+			end)
+			
+			UserInputService.InputBegan:Connect(function(input, gameProcessed)
+				if listening and input.UserInputType == Enum.UserInputType.Keyboard then
+					listening = false
+					currentKey = input.KeyCode
+					keyButton.Text = input.KeyCode.Name
+					
+					TweenService:Create(keyButton, TweenInfo.new(0.2), {
+						BackgroundColor3 = Color3.fromRGB(40, 40, 50),
+						TextColor3 = Color3.fromRGB(255, 80, 80)
+					}):Play()
+					
+					pcall(function() callback(currentKey) end)
+				end
+				
+				if not gameProcessed and input.KeyCode == currentKey then
+					pcall(function() callback(currentKey) end)
+				end
+			end)
+			
+			return {Frame = keybindFrame, CurrentKey = currentKey}
+		end
+		
+		function Tab:CreateColorPicker(config)
+			config = config or {}
+			local default = config.Default or Color3.fromRGB(255, 80, 80)
+			local callback = config.Callback or function() end
+			
+			local currentColor = default
+			
+			local colorFrame = Instance.new("Frame")
+			colorFrame.Name = "ColorPicker"
+			colorFrame.Size = UDim2.new(1, 0, 0, 45)
+			colorFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+			colorFrame.BorderSizePixel = 0
+			colorFrame.Parent = tabContent
+			
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 10)
+			corner.Parent = colorFrame
+			
+			local stroke = Instance.new("UIStroke")
+			stroke.Color = Color3.fromRGB(255, 50, 50)
+			stroke.Thickness = 1
+			stroke.Transparency = 0.8
+			stroke.Parent = colorFrame
+			
+			local nameLabel = Instance.new("TextLabel")
+			nameLabel.Size = UDim2.new(0.7, 0, 1, 0)
+			nameLabel.Position = UDim2.new(0, 15, 0, 0)
+			nameLabel.BackgroundTransparency = 1
+			nameLabel.Text = config.Name or "Color Picker"
+			nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			nameLabel.TextSize = 14
+			nameLabel.Font = Enum.Font.GothamMedium
+			nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+			nameLabel.Parent = colorFrame
+			
+			local colorDisplay = Instance.new("Frame")
+			colorDisplay.Size = UDim2.new(0, 50, 0, 30)
+			colorDisplay.Position = UDim2.new(1, -65, 0.5, -15)
+			colorDisplay.BackgroundColor3 = currentColor
+			colorDisplay.BorderSizePixel = 0
+			colorDisplay.Parent = colorFrame
+			
+			local displayCorner = Instance.new("UICorner")
+			displayCorner.CornerRadius = UDim.new(0, 6)
+			displayCorner.Parent = colorDisplay
+			
+			local displayStroke = Instance.new("UIStroke")
+			displayStroke.Color = Color3.fromRGB(255, 50, 50)
+			displayStroke.Thickness = 2
+			displayStroke.Parent = colorDisplay
+			
+			local colorButton = Instance.new("TextButton")
+			colorButton.Size = UDim2.new(1, 0, 1, 0)
+			colorButton.BackgroundTransparency = 1
+			colorButton.Text = ""
+			colorButton.Parent = colorFrame
+			
+			colorButton.MouseButton1Click:Connect(function()
+				-- Simple color cycle demo (replace with full color picker if needed)
+				local colors = {
+					Color3.fromRGB(255, 50, 50),
+					Color3.fromRGB(255, 100, 100),
+					Color3.fromRGB(100, 255, 150),
+					Color3.fromRGB(255, 200, 100),
+					Color3.fromRGB(200, 100, 255),
+					Color3.fromRGB(100, 200, 255)
+				}
+				
+				local currentIndex = 1
+				for i, c in ipairs(colors) do
+					if c == currentColor then
+						currentIndex = i
+						break
+					end
+				end
+				
+				currentColor = colors[(currentIndex % #colors) + 1]
+				colorDisplay.BackgroundColor3 = currentColor
+				
+				pcall(function() callback(currentColor) end)
+			end)
+			
+			-- Hover effect
+			colorButton.MouseEnter:Connect(function()
+				TweenService:Create(colorFrame, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+				}):Play()
+			end)
+			
+			colorButton.MouseLeave:Connect(function()
+				TweenService:Create(colorFrame, TweenInfo.new(0.2), {
+					BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+				}):Play()
+			end)
+			
+			return {Frame = colorFrame, Color = currentColor, Set = function(color)
+				currentColor = color
+				colorDisplay.BackgroundColor3 = color
+			end}
 		end
 		
 		return Tab
@@ -374,54 +1302,124 @@ local Window = Library:CreateWindow({
 	Game = "v1.0"  -- Change to your version
 })
 
--- Create tabs
-local MainTab = Window:CreateTab("Main")
-local CombatTab = Window:CreateTab("Combat")
-local FarmTab = Window:CreateTab("Auto Farm")
-local MiscTab = Window:CreateTab("Misc")
-local SettingsTab = Window:CreateTab("Settings")
+-- Create tabs with icons
+local MainTab = Window:CreateTab("Main", "🏠")
+local CombatTab = Window:CreateTab("Combat", "⚔️")
+local FarmTab = Window:CreateTab("Farm", "🌾")
+local MiscTab = Window:CreateTab("Misc", "⚙️")
+local SettingsTab = Window:CreateTab("Settings", "🔧")
 
 -- ========================================
 -- MAIN TAB
 -- ========================================
 
-MainTab:CreateSection("Player")
+MainTab:CreateSection("Player Movement")
 
-MainTab:CreateButton({
-	Name = "Example Feature 1",
-	Callback = function()
-		_G.Notify.Success("Feature", "Feature 1 activated!")
-		-- Your code here
+MainTab:CreateSlider({
+	Name = "WalkSpeed",
+	Min = 16,
+	Max = 200,
+	Default = 16,
+	Increment = 1,
+	Callback = function(value)
+		local character = player.Character
+		if character and character:FindFirstChild("Humanoid") then
+			character.Humanoid.WalkSpeed = value
+			_G.Notify.Success("WalkSpeed", "Set to " .. value)
+		end
 	end
 })
 
-MainTab:CreateButton({
-	Name = "Example Feature 2",
-	Callback = function()
-		_G.Notify.Info("Feature", "Feature 2 activated!")
-		-- Your code here
+MainTab:CreateSlider({
+	Name = "JumpPower",
+	Min = 50,
+	Max = 300,
+	Default = 50,
+	Increment = 5,
+	Callback = function(value)
+		local character = player.Character
+		if character and character:FindFirstChild("Humanoid") then
+			character.Humanoid.JumpPower = value
+			_G.Notify.Success("JumpPower", "Set to " .. value)
+		end
 	end
 })
 
-MainTab:CreateLabel("This is an example game script")
+MainTab:CreateToggle({
+	Name = "Infinite Jump",
+	Default = false,
+	Callback = function(enabled)
+		_G.InfiniteJump = enabled
+		if enabled then
+			_G.Notify.Success("Infinite Jump", "Enabled")
+		else
+			_G.Notify.Warning("Infinite Jump", "Disabled")
+		end
+	end
+})
+
+MainTab:CreateSection("Player Info")
+
+MainTab:CreateLabel("Character: " .. player.Name)
+MainTab:CreateLabel("Display Name: " .. player.DisplayName)
 
 -- ========================================
 -- COMBAT TAB
 -- ========================================
 
-CombatTab:CreateSection("Combat Features")
+CombatTab:CreateSection("Auto Combat")
 
-CombatTab:CreateButton({
+CombatTab:CreateToggle({
 	Name = "Auto Attack",
-	Callback = function()
-		_G.AutoAttack = not _G.AutoAttack
-		if _G.AutoAttack then
+	Default = false,
+	Callback = function(enabled)
+		_G.AutoAttack = enabled
+		if enabled then
 			_G.Notify.Success("Auto Attack", "Enabled")
-			-- Start auto attack loop
+			-- Your auto attack code here
 		else
 			_G.Notify.Warning("Auto Attack", "Disabled")
-			-- Stop auto attack
 		end
+	end
+})
+
+CombatTab:CreateToggle({
+	Name = "Auto Block",
+	Default = false,
+	Callback = function(enabled)
+		_G.AutoBlock = enabled
+		_G.Notify.Info("Auto Block", enabled and "ON" or "OFF")
+	end
+})
+
+CombatTab:CreateSection("Combat Settings")
+
+CombatTab:CreateDropdown({
+	Name = "Target Mode",
+	Options = {"Nearest", "Strongest", "Weakest", "Random"},
+	Default = "Nearest",
+	Callback = function(value)
+		_G.TargetMode = value
+		_G.Notify.Info("Target Mode", "Set to " .. value)
+	end
+})
+
+CombatTab:CreateSlider({
+	Name = "Attack Range",
+	Min = 10,
+	Max = 100,
+	Default = 25,
+	Increment = 5,
+	Callback = function(value)
+		_G.AttackRange = value
+	end
+})
+
+CombatTab:CreateKeybind({
+	Name = "Combat Toggle",
+	Default = Enum.KeyCode.F,
+	Callback = function(key)
+		_G.Notify.Success("Keybind", "Combat toggle bound to " .. key.Name)
 	end
 })
 
@@ -429,19 +1427,58 @@ CombatTab:CreateButton({
 -- FARM TAB
 -- ========================================
 
-FarmTab:CreateSection("Farming")
+FarmTab:CreateSection("Auto Farming")
 
-FarmTab:CreateButton({
+FarmTab:CreateToggle({
 	Name = "Auto Farm",
-	Callback = function()
-		_G.AutoFarm = not _G.AutoFarm
-		if _G.AutoFarm then
+	Default = false,
+	Callback = function(enabled)
+		_G.AutoFarm = enabled
+		if enabled then
 			_G.Notify.Success("Auto Farm", "Started")
-			-- Start farming
+			-- Start farming loop
 		else
 			_G.Notify.Warning("Auto Farm", "Stopped")
-			-- Stop farming
 		end
+	end
+})
+
+FarmTab:CreateDropdown({
+	Name = "Farm Mode",
+	Options = {"Fast", "Safe", "Efficient", "Distance"},
+	Default = "Fast",
+	Callback = function(value)
+		_G.FarmMode = value
+		_G.Notify.Info("Farm Mode", value)
+	end
+})
+
+FarmTab:CreateSection("Farm Settings")
+
+FarmTab:CreateSlider({
+	Name = "Farm Distance",
+	Min = 50,
+	Max = 500,
+	Default = 200,
+	Increment = 10,
+	Callback = function(value)
+		_G.FarmDistance = value
+	end
+})
+
+FarmTab:CreateToggle({
+	Name = "Auto Collect",
+	Default = true,
+	Callback = function(enabled)
+		_G.AutoCollect = enabled
+	end
+})
+
+FarmTab:CreateButton({
+	Name = "Teleport to Farm Area",
+	Callback = function()
+		_G.Notify.Warning("Teleport", "Feature coming soon!")
+		-- Your teleport code here
 	end
 })
 
@@ -449,32 +1486,87 @@ FarmTab:CreateButton({
 -- MISC TAB
 -- ========================================
 
-MiscTab:CreateSection("Miscellaneous")
+MiscTab:CreateSection("Visual Settings")
 
-MiscTab:CreateButton({
-	Name = "Test Notifications",
-	Callback = function()
-		_G.Notify.Info("Info", "This is an info notification")
-		wait(0.5)
-		_G.Notify.Success("Success", "This is a success notification")
-		wait(0.5)
-		_G.Notify.Warning("Warning", "This is a warning notification")
-		wait(0.5)
-		_G.Notify.Error("Error", "This is an error notification")
+MiscTab:CreateColorPicker({
+	Name = "Accent Color",
+	Default = Color3.fromRGB(255, 80, 80),
+	Callback = function(color)
+		_G.AccentColor = color
+		_G.Notify.Success("Color", "Accent color updated!")
 	end
 })
+
+MiscTab:CreateSection("Utilities")
+
+MiscTab:CreateTextbox({
+	Name = "Player Name",
+	Placeholder = "Enter player name...",
+	Default = "",
+	Callback = function(text)
+		_G.Notify.Info("Player Search", "Searching for: " .. text)
+		-- Search for player
+	end
+})
+
+MiscTab:CreateButton({
+	Name = "Test All Notifications",
+	Callback = function()
+		_G.Notify.Info("Info", "This is an info notification", 2)
+		task.wait(0.5)
+		_G.Notify.Success("Success", "This is a success notification", 2)
+		task.wait(0.5)
+		_G.Notify.Warning("Warning", "This is a warning notification", 2)
+		task.wait(0.5)
+		_G.Notify.Error("Error", "This is an error notification", 2)
+	end
+})
+
+MiscTab:CreateSection("Game Info")
+
+MiscTab:CreateLabel("Place ID: " .. game.PlaceId)
+MiscTab:CreateLabel("Players: " .. #game.Players:GetPlayers())
 
 -- ========================================
 -- SETTINGS TAB
 -- ========================================
 
-SettingsTab:CreateSection("Settings")
+SettingsTab:CreateSection("GUI Settings")
+
+SettingsTab:CreateKeybind({
+	Name = "Toggle GUI",
+	Default = Enum.KeyCode.RightShift,
+	Callback = function(key)
+		_G.Notify.Success("Keybind", "GUI toggle set to " .. key.Name)
+		_G.GuiToggleKey = key
+	end
+})
+
+SettingsTab:CreateToggle({
+	Name = "Top Most",
+	Default = false,
+	Callback = function(enabled)
+		Window.ScreenGui.DisplayOrder = enabled and 999 or 0
+		_G.Notify.Info("Top Most", enabled and "Enabled" or "Disabled")
+	end
+})
+
+SettingsTab:CreateSection("Actions")
+
+SettingsTab:CreateButton({
+	Name = "Rejoin Server",
+	Callback = function()
+		_G.Notify.Warning("Rejoining", "Teleporting to new server...")
+		task.wait(1)
+		game:GetService("TeleportService"):Teleport(game.PlaceId, player)
+	end
+})
 
 SettingsTab:CreateButton({
 	Name = "Destroy GUI",
 	Callback = function()
 		_G.Notify.Info("GUI", "Closing in 2 seconds...")
-		wait(2)
+		task.wait(2)
 		Window.ScreenGui:Destroy()
 	end
 })
