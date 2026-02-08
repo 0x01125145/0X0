@@ -55,27 +55,49 @@ local function CreateLoaderScreen(text)
     task.spawn(function()
         while diamond.Parent do
 
-            TweenService:Create(outline, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {Rotation = 160}):Play()
-            TweenService:Create(diamond, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {
-                Size = UDim2.new(0, 95, 0, 65),
-                Position = UDim2.fromScale(0.505, 0.44)
+            TweenService:Create(outline, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Rotation = 135
             }):Play()
-            task.wait(0.6)
 
-            TweenService:Create(outline, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {Rotation = 80}):Play()
-            TweenService:Create(diamond, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {
-                Size = UDim2.new(0, 65, 0, 95),
-                Position = UDim2.fromScale(0.495, 0.46)
+            TweenService:Create(diamond, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Size = UDim2.new(0, 92, 0, 68),
+                Position = UDim2.fromScale(0.505, 0.445)
             }):Play()
-            task.wait(0.6)
 
-            TweenService:Create(outline, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {Rotation = 45}):Play()
-            TweenService:Create(diamond, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {
-                Size = UDim2.new(0, 90, 0, 90),
+            task.wait(0.7)
+
+            TweenService:Create(outline, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Rotation = 225
+            }):Play()
+
+            TweenService:Create(diamond, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Size = UDim2.new(0, 68, 0, 92),
+                Position = UDim2.fromScale(0.495, 0.455)
+            }):Play()
+
+            task.wait(0.7)
+
+            TweenService:Create(outline, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Rotation = 315
+            }):Play()
+
+            TweenService:Create(diamond, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Size = UDim2.new(0, 92, 0, 92),
+                Position = UDim2.fromScale(0.5, 0.448)
+            }):Play()
+
+            task.wait(0.7)
+
+            TweenService:Create(outline, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Rotation = 45
+            }):Play()
+
+            TweenService:Create(diamond, TweenInfo.new(0.7, Enum.EasingStyle.Sine), {
+                Size = UDim2.new(0, 80, 0, 80),
                 Position = UDim2.fromScale(0.5, 0.45)
             }):Play()
-            task.wait(0.6)
 
+            task.wait(0.7)
         end
     end)
 
