@@ -1,41 +1,76 @@
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
 
-local gui = Instance.new("ScreenGui")
-gui.IgnoreGuiInset = true
-gui.ResetOnSpawn = false
-gui.Name = "Cube4DLoader"
-gui.Parent = playerGui
+-- Create a model for the cube
+local cube = Instance.new("Model")
+cube.Name = "WireCube"
+cube.Parent = workspace
 
-local bg = Instance.new("Frame", gui)
-bg.Size = UDim2.fromScale(1,1)
-bg.BackgroundColor3 = Color3.fromRGB(5,5,5)
+local size = 4                 -- cube size
+local thickness = 0.05         -- line thickness
+local color = Color3.fromRGB(0, 77, 255) -- neon blue like CSS
 
-local cube = Instance.new("Frame", bg)
-cube.AnchorPoint = Vector2.new(0.5,0.5)
-cube.Position = UDim2.fromScale(0.5,0.5)
-cube.Size = UDim2.new(0,180,0,180)
-cube.BackgroundTransparency = 1
+-- 12 cube edges (start → end)
+local edges = {
+    -- bottom square
+    {Vector3.new(-1,-1,-1), Vector3.new(1,-1,-1)},
+    {Vector3.new(1,-1,-1), Vector3.new(1,-1,1)},
+    {Vector3.new(1,-1,1), Vector3.new(-1,-1,1)},
+    {Vector3.new(-1,-1,1), Vector3.new(-1,-1,-1)},
 
-local stroke = Instance.new("UIStroke", cube)
-stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(120,255,200)
-stroke.Transparency = 0.2
+    -- top square
+    {Vector3.new(-1,1,-1), Vector3.new(1,1,-1)},
+    {Vector3.new(1,1,-1), Vector3.new(1,1,1)},
+    {Vector3.new(1,1,1), Vector3.new(-1,1,1)},
+    {Vector3.new(-1,1,1), Vector3.new(-1,1,-1)},
 
-local corner = Instance.new("UICorner", cube)
-corner.CornerRadius = UDim.new(0,4)
+    -- vertical edges
+    {Vector3.new(-1,-1,-1), Vector3.new(-1,1,-1)},
+    {Vector3.new(1,-1,-1), Vector3.new(1,1,-1)},
+    {Vector3.new(1,-1,1), Vector3.new(1,1,1)},
+    {Vector3.new(-1,-1,1), Vector3.new(-1,1,1)},
+}
 
-local function spin(axis, duration)
-    local tween = TweenService:Create(
-        cube,
-        TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1),
-        {Rotation = axis}
-    )
-    tween:Play()
+local parts = {}
+
+local function createEdge(a, b)
+    local p = Instance.new("Part")
+    p.Anchored = true
+    p.CanCollide = false
+    p.Material = Enum.Material.Neon
+    p.Color = color
+    p.Size = Vector3.new(thickness, thickness, (b - a).Magnitude)
+    p.CFrame = CFrame.new(a, b) * CFrame.new(0, 0, -((b - a).Magnitude / 2))
+    p.Parent = cube
+    table.insert(parts, p)
 end
 
-spin(360, 1.2)
-task.delay(0.1, function() spin(-360, 1.4) end)
-task.delay(0.2, function() spin(720, 2.2) end)
+-- Build all edges
+for _, edge in ipairs(edges) do
+    createEdge(edge[1] * size, edge[2] * size)
+end
+
+-- Rotation angles
+local angleX = 0
+local angleY = 0
+local angleZ = 0
+
+-- Animate cube
+RunService.RenderStepped:Connect(function(dt)
+    angleX += math.rad(180) * dt * 2     -- fast X rotation
+    angleY += math.rad(360) * dt * 1.5   -- faster Y rotation
+    angleZ += math.rad(90) * dt * 1      -- slow Z rotation
+
+    local rot = CFrame.Angles(angleX, angleY, angleZ)
+
+    for i, edge in ipairs(edges) do
+        local a = (edge[1] * size)
+        local b = (edge[2] * size)
+
+        local pa = rot:PointToWorldSpace(a)
+        local pb = rot:PointToWorldSpace(b)
+
+        local p = parts[i]
+        p.CFrame = CFrame.new(pa, pb) * CFrame.new(0, 0, -((pb - pa).Magnitude / 2))
+        p.Size = Vector3.new(thickness, thickness, (pb - pa).Magnitude)
+    end
+end)
