@@ -3,14 +3,14 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local ShowcaseGui = Instance.new("ScreenGui")
-ShowcaseGui.IgnoreGuiInset = true
-ShowcaseGui.ResetOnSpawn = false
-ShowcaseGui.Name = "LoaderShowcase"
-ShowcaseGui.Parent = playerGui
+local gui = Instance.new("ScreenGui")
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
+gui.Name = "ModernShowcase"
+gui.Parent = playerGui
 
 local function Clear()
-    for _,v in ipairs(ShowcaseGui:GetChildren()) do
+    for _,v in ipairs(gui:GetChildren()) do
         if v:IsA("Frame") or v:IsA("Folder") then
             v:Destroy()
         end
@@ -18,7 +18,6 @@ local function Clear()
 end
 
 local function FadeOut(frame)
-    if not frame then return end
     TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
         BackgroundTransparency = 1
     }):Play()
@@ -26,33 +25,32 @@ local function FadeOut(frame)
 end
 
 ---------------------------------------------------------------------
--- 1. Glass‑Pane Fade
+-- 1. Glass Surface Fade
 ---------------------------------------------------------------------
-local function GlassPaneFade()
+local function GlassSurface()
     Clear()
 
-    local bg = Instance.new("Frame", ShowcaseGui)
+    local bg = Instance.new("Frame", gui)
     bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(10,10,10)
-    bg.BackgroundTransparency = 0
+    bg.BackgroundColor3 = Color3.fromRGB(12,12,12)
 
     local pane = Instance.new("Frame", bg)
     pane.AnchorPoint = Vector2.new(0.5,0.5)
     pane.Position = UDim2.fromScale(0.5,0.5)
-    pane.Size = UDim2.new(0,300,0,150)
+    pane.Size = UDim2.new(0,420,0,200)
     pane.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    pane.BackgroundTransparency = 0.9
+    pane.BackgroundTransparency = 0.92
     pane.BorderSizePixel = 0
 
     local corner = Instance.new("UICorner", pane)
-    corner.CornerRadius = UDim.new(0,12)
+    corner.CornerRadius = UDim.new(0,18)
 
     task.spawn(function()
         while pane.Parent do
-            TweenService:Create(pane, TweenInfo.new(1.5), {BackgroundTransparency = 0.8}):Play()
-            task.wait(1.5)
-            TweenService:Create(pane, TweenInfo.new(1.5), {BackgroundTransparency = 0.9}):Play()
-            task.wait(1.5)
+            TweenService:Create(pane, TweenInfo.new(1.8), {BackgroundTransparency = 0.86}):Play()
+            task.wait(1.8)
+            TweenService:Create(pane, TweenInfo.new(1.8), {BackgroundTransparency = 0.92}):Play()
+            task.wait(1.8)
         end
     end)
 
@@ -61,114 +59,26 @@ local function GlassPaneFade()
 end
 
 ---------------------------------------------------------------------
--- 2. Ambient Glow Sweep
+-- 2. Ambient Gradient Flow
 ---------------------------------------------------------------------
-local function AmbientGlowSweep()
+local function AmbientGradient()
     Clear()
 
-    local bg = Instance.new("Frame", ShowcaseGui)
+    local bg = Instance.new("Frame", gui)
     bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(5,5,15)
-
-    local glow = Instance.new("Frame", bg)
-    glow.Size = UDim2.new(0,200,1,0)
-    glow.Position = UDim2.new(-0.3,0,0,0)
-    glow.BackgroundColor3 = Color3.fromRGB(120,200,255)
-    glow.BackgroundTransparency = 0.85
-
-    TweenService:Create(glow, TweenInfo.new(5, Enum.EasingStyle.Sine), {
-        Position = UDim2.new(1.3,0,0,0)
-    }):Play()
-
-    task.wait(5)
-    FadeOut(bg)
-end
-
----------------------------------------------------------------------
--- 3. Micro‑Pulse Dots
----------------------------------------------------------------------
-local function MicroPulseDots()
-    Clear()
-
-    local bg = Instance.new("Frame", ShowcaseGui)
-    bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(10,10,10)
-
-    local dots = {}
-    for i = 1,3 do
-        local d = Instance.new("Frame", bg)
-        d.Size = UDim2.new(0,12,0,12)
-        d.AnchorPoint = Vector2.new(0.5,0.5)
-        d.Position = UDim2.fromScale(0.45 + (i*0.05), 0.5)
-        d.BackgroundColor3 = Color3.fromRGB(255,255,255)
-        d.BackgroundTransparency = 0.6
-        d.BorderSizePixel = 0
-        table.insert(dots, d)
-    end
-
-    task.spawn(function()
-        while bg.Parent do
-            for _,d in ipairs(dots) do
-                TweenService:Create(d, TweenInfo.new(0.4), {BackgroundTransparency = 0.2}):Play()
-                task.wait(0.2)
-                TweenService:Create(d, TweenInfo.new(0.4), {BackgroundTransparency = 0.6}):Play()
-            end
-        end
-    end)
-
-    task.wait(5)
-    FadeOut(bg)
-end
-
----------------------------------------------------------------------
--- 4. Soft‑Noise Hologram
----------------------------------------------------------------------
-local function SoftNoiseHologram()
-    Clear()
-
-    local bg = Instance.new("Frame", ShowcaseGui)
-    bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(15,15,20)
-
-    local haze = Instance.new("Frame", bg)
-    haze.Size = UDim2.fromScale(1,1)
-    haze.BackgroundColor3 = Color3.fromRGB(120,255,200)
-    haze.BackgroundTransparency = 0.97
-
-    task.spawn(function()
-        while haze.Parent do
-            TweenService:Create(haze, TweenInfo.new(1.2), {BackgroundTransparency = 0.94}):Play()
-            task.wait(1.2)
-            TweenService:Create(haze, TweenInfo.new(1.2), {BackgroundTransparency = 0.97}):Play()
-            task.wait(1.2)
-        end
-    end)
-
-    task.wait(5)
-    FadeOut(bg)
-end
-
----------------------------------------------------------------------
--- 5. Gradient Drift
----------------------------------------------------------------------
-local function GradientDrift()
-    Clear()
-
-    local bg = Instance.new("Frame", ShowcaseGui)
-    bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(20,20,30)
+    bg.BackgroundColor3 = Color3.fromRGB(10,10,20)
 
     local grad = Instance.new("UIGradient", bg)
     grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(50,80,200)),
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40,80,200)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(20,20,40))
     })
     grad.Offset = Vector2.new(-1,0)
 
     task.spawn(function()
         while bg.Parent do
-            TweenService:Create(grad, TweenInfo.new(4, Enum.EasingStyle.Linear), {Offset = Vector2.new(1,0)}):Play()
-            task.wait(4)
+            TweenService:Create(grad, TweenInfo.new(5, Enum.EasingStyle.Sine), {Offset = Vector2.new(1,0)}):Play()
+            task.wait(5)
             grad.Offset = Vector2.new(-1,0)
         end
     end)
@@ -178,28 +88,37 @@ local function GradientDrift()
 end
 
 ---------------------------------------------------------------------
--- 6. Light‑Ripple Bar
+-- 3. Micro Particle Mist
 ---------------------------------------------------------------------
-local function LightRippleBar()
+local function MicroMist()
     Clear()
 
-    local bg = Instance.new("Frame", ShowcaseGui)
+    local bg = Instance.new("Frame", gui)
     bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(5,5,5)
+    bg.BackgroundColor3 = Color3.fromRGB(8,8,12)
 
-    local bar = Instance.new("Frame", bg)
-    bar.AnchorPoint = Vector2.new(0.5,0.5)
-    bar.Position = UDim2.fromScale(0.5,0.5)
-    bar.Size = UDim2.new(0.6,0,0,4)
-    bar.BackgroundColor3 = Color3.fromRGB(120,255,200)
-    bar.BackgroundTransparency = 0.4
+    local folder = Instance.new("Folder", bg)
+
+    local function spawn()
+        local p = Instance.new("Frame", folder)
+        p.Size = UDim2.new(0,2,0,2)
+        p.Position = UDim2.new(math.random(),0,1.1,0)
+        p.BackgroundColor3 = Color3.fromRGB(180,220,255)
+        p.BackgroundTransparency = 0.2
+        p.BorderSizePixel = 0
+
+        TweenService:Create(p, TweenInfo.new(4, Enum.EasingStyle.Linear), {
+            Position = UDim2.new(p.Position.X.Scale,0,-0.1,0),
+            BackgroundTransparency = 1
+        }):Play()
+
+        task.delay(4, function() p:Destroy() end)
+    end
 
     task.spawn(function()
-        while bar.Parent do
-            TweenService:Create(bar, TweenInfo.new(1.2), {Size = UDim2.new(0.6,0,0,14)}):Play()
-            task.wait(1.2)
-            TweenService:Create(bar, TweenInfo.new(1.2), {Size = UDim2.new(0.6,0,0,4)}):Play()
-            task.wait(1.2)
+        while bg.Parent do
+            spawn()
+            task.wait(0.04)
         end
     end)
 
@@ -208,28 +127,28 @@ local function LightRippleBar()
 end
 
 ---------------------------------------------------------------------
--- 7. Minimal Line Blink
+-- 4. Soft Light Horizon
 ---------------------------------------------------------------------
-local function MinimalLineBlink()
+local function LightHorizon()
     Clear()
 
-    local bg = Instance.new("Frame", ShowcaseGui)
+    local bg = Instance.new("Frame", gui)
     bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(10,10,10)
+    bg.BackgroundColor3 = Color3.fromRGB(5,5,5)
 
     local line = Instance.new("Frame", bg)
     line.AnchorPoint = Vector2.new(0.5,0.5)
     line.Position = UDim2.fromScale(0.5,0.5)
-    line.Size = UDim2.new(0.4,0,0,3)
-    line.BackgroundColor3 = Color3.fromRGB(255,255,255)
-    line.BackgroundTransparency = 0.2
+    line.Size = UDim2.new(0.7,0,0,6)
+    line.BackgroundColor3 = Color3.fromRGB(120,255,200)
+    line.BackgroundTransparency = 0.5
 
     task.spawn(function()
         while line.Parent do
-            TweenService:Create(line, TweenInfo.new(0.5), {BackgroundTransparency = 0.8}):Play()
-            task.wait(0.5)
-            TweenService:Create(line, TweenInfo.new(0.5), {BackgroundTransparency = 0.2}):Play()
-            task.wait(0.5)
+            TweenService:Create(line, TweenInfo.new(1.4), {Size = UDim2.new(0.7,0,0,18)}):Play()
+            task.wait(1.4)
+            TweenService:Create(line, TweenInfo.new(1.4), {Size = UDim2.new(0.7,0,0,6)}):Play()
+            task.wait(1.4)
         end
     end)
 
@@ -238,21 +157,53 @@ local function MinimalLineBlink()
 end
 
 ---------------------------------------------------------------------
--- 8. Soft‑Bloom Pulse
+-- 5. Neon Edge Flicker
 ---------------------------------------------------------------------
-local function SoftBloomPulse()
+local function NeonEdge()
     Clear()
 
-    local bg = Instance.new("Frame", ShowcaseGui)
+    local bg = Instance.new("Frame", gui)
     bg.Size = UDim2.fromScale(1,1)
-    bg.BackgroundColor3 = Color3.fromRGB(5,5,5)
+    bg.BackgroundColor3 = Color3.fromRGB(0,0,0)
+
+    local border = Instance.new("Frame", bg)
+    border.Size = UDim2.fromScale(1,1)
+    border.BackgroundTransparency = 1
+
+    local uiStroke = Instance.new("UIStroke", border)
+    uiStroke.Thickness = 2
+    uiStroke.Color = Color3.fromRGB(120,255,200)
+    uiStroke.Transparency = 0.7
+
+    task.spawn(function()
+        while border.Parent do
+            TweenService:Create(uiStroke, TweenInfo.new(1.2), {Transparency = 0.3}):Play()
+            task.wait(1.2)
+            TweenService:Create(uiStroke, TweenInfo.new(1.2), {Transparency = 0.7}):Play()
+            task.wait(1.2)
+        end
+    end)
+
+    task.wait(5)
+    FadeOut(bg)
+end
+
+---------------------------------------------------------------------
+-- 6. Blur Pulse Center
+---------------------------------------------------------------------
+local function BlurPulse()
+    Clear()
+
+    local bg = Instance.new("Frame", gui)
+    bg.Size = UDim2.fromScale(1,1)
+    bg.BackgroundColor3 = Color3.fromRGB(10,10,10)
 
     local bloom = Instance.new("Frame", bg)
     bloom.AnchorPoint = Vector2.new(0.5,0.5)
     bloom.Position = UDim2.fromScale(0.5,0.5)
-    bloom.Size = UDim2.new(0,200,0,200)
+    bloom.Size = UDim2.new(0,260,0,260)
     bloom.BackgroundColor3 = Color3.fromRGB(120,255,200)
-    bloom.BackgroundTransparency = 0.9
+    bloom.BackgroundTransparency = 0.92
     bloom.BorderSizePixel = 0
 
     local corner = Instance.new("UICorner", bloom)
@@ -260,12 +211,64 @@ local function SoftBloomPulse()
 
     task.spawn(function()
         while bloom.Parent do
-            TweenService:Create(bloom, TweenInfo.new(1.5), {Size = UDim2.new(0,260,0,260), BackgroundTransparency = 0.8}):Play()
-            task.wait(1.5)
-            TweenService:Create(bloom, TweenInfo.new(1.5), {Size = UDim2.new(0,200,0,200), BackgroundTransparency = 0.9}):Play()
-            task.wait(1.5)
+            TweenService:Create(bloom, TweenInfo.new(1.6), {Size = UDim2.new(0,330,0,330), BackgroundTransparency = 0.86}):Play()
+            task.wait(1.6)
+            TweenService:Create(bloom, TweenInfo.new(1.6), {Size = UDim2.new(0,260,0,260), BackgroundTransparency = 0.92}):Play()
+            task.wait(1.6)
         end
     end)
+
+    task.wait(5)
+    FadeOut(bg)
+end
+
+---------------------------------------------------------------------
+-- 7. Holographic Noise Layer
+---------------------------------------------------------------------
+local function HoloNoise()
+    Clear()
+
+    local bg = Instance.new("Frame", gui)
+    bg.Size = UDim2.fromScale(1,1)
+    bg.BackgroundColor3 = Color3.fromRGB(12,12,18)
+
+    local noise = Instance.new("Frame", bg)
+    noise.Size = UDim2.fromScale(1,1)
+    noise.BackgroundColor3 = Color3.fromRGB(120,255,200)
+    noise.BackgroundTransparency = 0.97
+
+    task.spawn(function()
+        while noise.Parent do
+            TweenService:Create(noise, TweenInfo.new(1.3), {BackgroundTransparency = 0.94}):Play()
+            task.wait(1.3)
+            TweenService:Create(noise, TweenInfo.new(1.3), {BackgroundTransparency = 0.97}):Play()
+            task.wait(1.3)
+        end
+    end)
+
+    task.wait(5)
+    FadeOut(bg)
+end
+
+---------------------------------------------------------------------
+-- 8. Light Sweep Bar
+---------------------------------------------------------------------
+local function SweepBar()
+    Clear()
+
+    local bg = Instance.new("Frame", gui)
+    bg.Size = UDim2.fromScale(1,1)
+    bg.BackgroundColor3 = Color3.fromRGB(5,5,5)
+
+    local bar = Instance.new("Frame", bg)
+    bar.Size = UDim2.new(0,200,1,0)
+    bar.Position = UDim2.new(-0.3,0,0,0)
+    bar.BackgroundColor3 = Color3.fromRGB(120,255,200)
+    bar.BackgroundTransparency = 0.85
+
+    TweenService:Create(bar, TweenInfo.new(5, Enum.EasingStyle.Sine), {
+        Position = UDim2.new(1.3,0,0,0)
+    }):Play()
 
     task.wait(5)
     FadeOut(bg)
@@ -276,14 +279,14 @@ end
 ---------------------------------------------------------------------
 
 local animations = {
-    GlassPaneFade,
-    AmbientGlowSweep,
-    MicroPulseDots,
-    SoftNoiseHologram,
-    GradientDrift,
-    LightRippleBar,
-    MinimalLineBlink,
-    SoftBloomPulse
+    GlassSurface,
+    AmbientGradient,
+    MicroMist,
+    LightHorizon,
+    NeonEdge,
+    BlurPulse,
+    HoloNoise,
+    SweepBar
 }
 
 for _,anim in ipairs(animations) do
