@@ -8,7 +8,7 @@ local function CreateLoaderScreen(text)
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
-    gui.Name = "TriquetraLoader"
+    gui.Name = "TriquetraDecalLoader"
     gui.Parent = playerGui
 
     local bg = Instance.new("Frame")
@@ -27,71 +27,39 @@ local function CreateLoaderScreen(text)
     label.Text = text or "Loading..."
     label.Parent = bg
 
-    local root = Instance.new("Frame")
-    root.AnchorPoint = Vector2.new(0.5, 0.5)
-    root.Position = UDim2.fromScale(0.5, 0.45)
-    root.Size = UDim2.new(0, 160, 0, 160)
-    root.BackgroundTransparency = 1
-    root.Parent = bg
+    local base = Instance.new("ImageLabel")
+    base.AnchorPoint = Vector2.new(0.5, 0.5)
+    base.Position = UDim2.fromScale(0.5, 0.45)
+    base.Size = UDim2.new(0, 200, 0, 200)
+    base.BackgroundTransparency = 1
+    base.Image = "rbxassetid://" .. 18671087986
+    base.ImageColor3 = Color3.fromRGB(60, 60, 60)
+    base.Parent = bg
 
-    local function makeArc(rotation)
-        local arcFolder = Instance.new("Folder")
-        arcFolder.Name = "Arc"
-        arcFolder.Parent = root
-
-        local segments = {}
-        local radius = 60
-        local thickness = 8
-        local count = 12
-
-        for i = 1, count do
-            local seg = Instance.new("Frame")
-            seg.Size = UDim2.new(0, thickness, 0, thickness)
-            seg.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            seg.BorderSizePixel = 0
-            seg.AnchorPoint = Vector2.new(0.5, 0.5)
-            seg.Parent = arcFolder
-
-            local angle = math.rad((i / count) * 120)
-            local x = math.cos(angle) * radius
-            local y = math.sin(angle) * radius
-
-            seg.Position = UDim2.fromOffset(80 + x, 80 + y)
-            seg.Rotation = math.deg(angle)
-
-            table.insert(segments, seg)
-        end
-
-        arcFolder.Rotation = rotation
-        return segments
-    end
-
-    local arc1 = makeArc(0)
-    local arc2 = makeArc(120)
-    local arc3 = makeArc(240)
-
-    local arcs = {arc1, arc2, arc3}
+    local highlight = Instance.new("ImageLabel")
+    highlight.AnchorPoint = Vector2.new(0.5, 0.5)
+    highlight.Position = UDim2.fromScale(0.5, 0.45)
+    highlight.Size = UDim2.new(0, 200, 0, 200)
+    highlight.BackgroundTransparency = 1
+    highlight.Image = "rbxassetid://" .. 18671087986
+    highlight.ImageColor3 = Color3.fromRGB(0, 170, 255)
+    highlight.ImageTransparency = 1
+    highlight.Parent = bg
 
     task.spawn(function()
-        local active = 1
         while gui.Parent do
-            for i, arc in ipairs(arcs) do
-                for _, seg in ipairs(arc) do
-                    seg.BackgroundColor3 =
-                        (i == active)
-                        and Color3.fromRGB(0, 170, 255)
-                        or Color3.fromRGB(60, 60, 60)
-                end
-            end
-
-            active = active % 3 + 1
-            task.wait(0.5)
+            TweenService:Create(highlight, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 0}):Play()
+            task.wait(0.6)
+            TweenService:Create(highlight, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
+            task.wait(0.6)
         end
     end)
 
     local function FadeOut()
         TweenService:Create(bg, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {BackgroundTransparency = 1}):Play()
         TweenService:Create(label, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {TextTransparency = 1}):Play()
+        TweenService:Create(highlight, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
+        TweenService:Create(base, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
         task.wait(0.6)
         gui:Destroy()
     end
