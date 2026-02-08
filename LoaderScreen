@@ -1,21 +1,30 @@
-local player = game.Players.LocalPlayer or game:GetService("Players").LocalPlayer
+--// SAFE PLAYER + GUI SETUP
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
 while not player do
     task.wait()
-    player = game.Players.LocalPlayer
+    player = Players.LocalPlayer
 end
 
---// UI SETUP
-local player = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.IgnoreGuiInset = true
-gui.ResetOnSpawn = false
+local parentGui
+if gethui then
+    parentGui = gethui()
+else
+    parentGui = player:WaitForChild("PlayerGui")
+end
 
+local gui = Instance.new("ScreenGui")
+gui.Name = "NeonRingLoader"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = parentGui
+
+--// VIEWPORTFRAME
 local frame = Instance.new("ViewportFrame", gui)
 frame.Size = UDim2.new(0, 300, 0, 300)
 frame.Position = UDim2.new(0.5, -150, 0.5, -150)
 frame.BackgroundTransparency = 1
-frame.LightColor = Color3.fromRGB(255, 255, 255)
-frame.Ambient = Color3.fromRGB(255, 255, 255)
 
 local cam = Instance.new("Camera")
 frame.CurrentCamera = cam
