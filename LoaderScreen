@@ -8,7 +8,7 @@ local function CreateLoaderScreen(text)
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
-    gui.Name = "TriquetraDecalLoader"
+    gui.Name = "TriquetraSweepLoader"
     gui.Parent = playerGui
 
     local bg = Instance.new("Frame")
@@ -32,34 +32,45 @@ local function CreateLoaderScreen(text)
     base.Position = UDim2.fromScale(0.5, 0.45)
     base.Size = UDim2.new(0, 200, 0, 200)
     base.BackgroundTransparency = 1
-    base.Image = "rbxassetid://" .. 18671087986
+    base.Image = "rbxassetid://18671087986"
     base.ImageColor3 = Color3.fromRGB(60, 60, 60)
     base.Parent = bg
 
-    local highlight = Instance.new("ImageLabel")
-    highlight.AnchorPoint = Vector2.new(0.5, 0.5)
-    highlight.Position = UDim2.fromScale(0.5, 0.45)
-    highlight.Size = UDim2.new(0, 200, 0, 200)
-    highlight.BackgroundTransparency = 1
-    highlight.Image = "rbxassetid://" .. 18671087986
-    highlight.ImageColor3 = Color3.fromRGB(0, 170, 255)
-    highlight.ImageTransparency = 1
-    highlight.Parent = bg
+    local blue = Instance.new("ImageLabel")
+    blue.AnchorPoint = Vector2.new(0.5, 0.5)
+    blue.Position = UDim2.fromScale(0.5, 0.45)
+    blue.Size = UDim2.new(0, 200, 0, 200)
+    blue.BackgroundTransparency = 1
+    blue.Image = "rbxassetid://18671087986"
+    blue.ImageColor3 = Color3.fromRGB(0, 170, 255)
+    blue.Parent = bg
+
+    local mask = Instance.new("Frame")
+    mask.AnchorPoint = Vector2.new(0.5, 0.5)
+    mask.Position = UDim2.fromScale(0.5, 0.5)
+    mask.Size = UDim2.new(1.2, 0, 1.2, 0)
+    mask.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    mask.BackgroundTransparency = 0
+    mask.Parent = blue
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = mask
+
+    blue.ClipsDescendants = true
 
     task.spawn(function()
         while gui.Parent do
-            TweenService:Create(highlight, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 0}):Play()
-            task.wait(0.6)
-            TweenService:Create(highlight, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
-            task.wait(0.6)
+            TweenService:Create(mask, TweenInfo.new(1.2, Enum.EasingStyle.Linear), {Rotation = mask.Rotation + 180}):Play()
+            task.wait(1.2)
         end
     end)
 
     local function FadeOut()
         TweenService:Create(bg, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {BackgroundTransparency = 1}):Play()
         TweenService:Create(label, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {TextTransparency = 1}):Play()
-        TweenService:Create(highlight, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
         TweenService:Create(base, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
+        TweenService:Create(blue, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
         task.wait(0.6)
         gui:Destroy()
     end
