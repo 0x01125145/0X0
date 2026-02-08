@@ -30,37 +30,58 @@ local function CreateLoaderScreen(text)
     local root = Instance.new("Frame")
     root.AnchorPoint = Vector2.new(0.5, 0.5)
     root.Position = UDim2.fromScale(0.5, 0.45)
-    root.Size = UDim2.new(0, 140, 0, 140)
+    root.Size = UDim2.new(0, 160, 0, 160)
     root.BackgroundTransparency = 1
     root.Parent = bg
 
-    local function makeArc()
-        local arc = Instance.new("Frame")
-        arc.AnchorPoint = Vector2.new(0.5, 0.5)
-        arc.Position = UDim2.fromScale(0.5, 0.5)
-        arc.Size = UDim2.new(0, 140, 0, 40)
-        arc.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        arc.BorderSizePixel = 0
-        return arc
+    local function makeArc(rotation)
+        local arcFolder = Instance.new("Folder")
+        arcFolder.Name = "Arc"
+        arcFolder.Parent = root
+
+        local segments = {}
+        local radius = 60
+        local thickness = 8
+        local count = 12
+
+        for i = 1, count do
+            local seg = Instance.new("Frame")
+            seg.Size = UDim2.new(0, thickness, 0, thickness)
+            seg.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            seg.BorderSizePixel = 0
+            seg.AnchorPoint = Vector2.new(0.5, 0.5)
+            seg.Parent = arcFolder
+
+            local angle = math.rad((i / count) * 120)
+            local x = math.cos(angle) * radius
+            local y = math.sin(angle) * radius
+
+            seg.Position = UDim2.fromOffset(80 + x, 80 + y)
+            seg.Rotation = math.deg(angle)
+
+            table.insert(segments, seg)
+        end
+
+        arcFolder.Rotation = rotation
+        return segments
     end
 
-    local arcs = {}
+    local arc1 = makeArc(0)
+    local arc2 = makeArc(120)
+    local arc3 = makeArc(240)
 
-    for i = 1, 3 do
-        local arc = makeArc()
-        arc.Rotation = (i - 1) * 120
-        arc.Parent = root
-        arcs[i] = arc
-    end
+    local arcs = {arc1, arc2, arc3}
 
     task.spawn(function()
         local active = 1
         while gui.Parent do
-            for i = 1, 3 do
-                arcs[i].BackgroundColor3 =
-                    (i == active)
-                    and Color3.fromRGB(0, 170, 255)
-                    or Color3.fromRGB(60, 60, 60)
+            for i, arc in ipairs(arcs) do
+                for _, seg in ipairs(arc) do
+                    seg.BackgroundColor3 =
+                        (i == active)
+                        and Color3.fromRGB(0, 170, 255)
+                        or Color3.fromRGB(60, 60, 60)
+                end
             end
 
             active = active % 3 + 1
