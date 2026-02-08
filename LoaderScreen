@@ -1,5 +1,6 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
@@ -7,7 +8,7 @@ local function CreateLoaderScreen(text)
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
-    gui.Name = "ModernCycleLoader"
+    gui.Name = "TriquetraLoader"
     gui.Parent = playerGui
 
     local bg = Instance.new("Frame")
@@ -26,134 +27,46 @@ local function CreateLoaderScreen(text)
     label.Text = text or "Loading..."
     label.Parent = bg
 
-    task.spawn(function()
-        while label.Parent do
-            TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0.3}):Play()
-            task.wait(1.2)
-            TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
-            task.wait(1.2)
-        end
-    end)
+    local root = Instance.new("Frame")
+    root.AnchorPoint = Vector2.new(0.5, 0.5)
+    root.Position = UDim2.fromScale(0.5, 0.45)
+    root.Size = UDim2.new(0, 140, 0, 140)
+    root.BackgroundTransparency = 1
+    root.Parent = bg
 
-    --------------------------------------------------------------------
-    -- CONTAINER FOR ALL ANIMATIONS
-    --------------------------------------------------------------------
-
-    local container = Instance.new("Frame")
-    container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.Position = UDim2.fromScale(0.5, 0.45)
-    container.Size = UDim2.new(0, 120, 0, 120)
-    container.BackgroundTransparency = 1
-    container.Parent = bg
-
-    --------------------------------------------------------------------
-    -- STYLE 1: LINE SWEEP
-    --------------------------------------------------------------------
-
-    local sweep = Instance.new("Frame")
-    sweep.Size = UDim2.fromScale(1, 1)
-    sweep.BackgroundTransparency = 1
-    sweep.Visible = false
-    sweep.Parent = container
-
-    local sweepArc = Instance.new("Frame")
-    sweepArc.AnchorPoint = Vector2.new(0.5, 0.5)
-    sweepArc.Position = UDim2.fromScale(0.5, 0.5)
-    sweepArc.Size = UDim2.fromScale(1, 1)
-    sweepArc.BackgroundTransparency = 1
-    sweepArc.Parent = sweep
-
-    local sweepStroke = Instance.new("UIStroke")
-    sweepStroke.Thickness = 4
-    sweepStroke.Color = Color3.fromRGB(120, 255, 150)
-    sweepStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    sweepStroke.LineJoinMode = Enum.LineJoinMode.Round
-    sweepStroke.Parent = sweepArc
-
-    local sweepCorner = Instance.new("UICorner")
-    sweepCorner.CornerRadius = UDim.new(1, 0)
-    sweepCorner.Parent = sweepArc
-
-    --------------------------------------------------------------------
-    -- STYLE 2: BAR PULSE
-    --------------------------------------------------------------------
-
-    local bars = Instance.new("Frame")
-    bars.Size = UDim2.fromScale(1, 1)
-    bars.BackgroundTransparency = 1
-    bars.Visible = false
-    bars.Parent = container
-
-    local barList = {}
-
-    for i = 1, 3 do
-        local b = Instance.new("Frame")
-        b.AnchorPoint = Vector2.new(0.5, 0.5)
-        b.Position = UDim2.fromScale(0.3 + (i - 1) * 0.2, 0.5)
-        b.Size = UDim2.new(0, 12, 0, 40)
-        b.BackgroundColor3 = Color3.fromRGB(120, 255, 150)
-        b.BorderSizePixel = 0
-        b.Parent = bars
-        barList[i] = b
+    local function makeArc()
+        local arc = Instance.new("Frame")
+        arc.AnchorPoint = Vector2.new(0.5, 0.5)
+        arc.Position = UDim2.fromScale(0.5, 0.5)
+        arc.Size = UDim2.new(0, 140, 0, 40)
+        arc.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        arc.BorderSizePixel = 0
+        return arc
     end
 
-    --------------------------------------------------------------------
-    -- STYLE 3: DOT ORBIT
-    --------------------------------------------------------------------
+    local arcs = {}
 
-    local orbit = Instance.new("Frame")
-    orbit.Size = UDim2.fromScale(1, 1)
-    orbit.BackgroundTransparency = 1
-    orbit.Visible = false
-    orbit.Parent = container
-
-    local dot = Instance.new("Frame")
-    dot.AnchorPoint = Vector2.new(0.5, 0.5)
-    dot.Size = UDim2.new(0, 10, 0, 10)
-    dot.BackgroundColor3 = Color3.fromRGB(120, 255, 150)
-    dot.BorderSizePixel = 0
-    dot.Parent = orbit
-
-    --------------------------------------------------------------------
-    -- ANIMATION LOOPS
-    --------------------------------------------------------------------
+    for i = 1, 3 do
+        local arc = makeArc()
+        arc.Rotation = (i - 1) * 120
+        arc.Parent = root
+        arcs[i] = arc
+    end
 
     task.spawn(function()
+        local active = 1
         while gui.Parent do
-            sweep.Visible = true
-            bars.Visible = false
-            orbit.Visible = false
-
-            for _ = 1, 5 do
-                TweenService:Create(sweepArc, TweenInfo.new(1, Enum.EasingStyle.Sine), {Rotation = sweepArc.Rotation + 180}):Play()
-                task.wait(1)
+            for i = 1, 3 do
+                arcs[i].BackgroundColor3 =
+                    (i == active)
+                    and Color3.fromRGB(0, 170, 255)
+                    or Color3.fromRGB(60, 60, 60)
             end
 
-            sweep.Visible = false
-            bars.Visible = true
-
-            for i = 1, 5 do
-                for j, b in ipairs(barList) do
-                    TweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 12, 0, 20)}):Play()
-                    task.wait(0.1)
-                    TweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 12, 0, 40)}):Play()
-                end
-                task.wait(0.3)
-            end
-
-            bars.Visible = false
-            orbit.Visible = true
-
-            for _ = 1, 5 do
-                TweenService:Create(orbit, TweenInfo.new(1, Enum.EasingStyle.Sine), {Rotation = orbit.Rotation + 180}):Play()
-                task.wait(1)
-            end
+            active = active % 3 + 1
+            task.wait(0.5)
         end
     end)
-
-    --------------------------------------------------------------------
-    -- FADE OUT
-    --------------------------------------------------------------------
 
     local function FadeOut()
         TweenService:Create(bg, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {BackgroundTransparency = 1}):Play()
