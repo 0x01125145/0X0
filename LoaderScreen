@@ -59,6 +59,16 @@ local function CreateLoaderScreen(text)
                 TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
                 {Rotation = 135}
             ):Play()
+
+            TweenService:Create(
+                diamond,
+                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                {
+                    Size = UDim2.new(0, 86, 0, 74),
+                    Position = UDim2.fromScale(0.5, 0.445)
+                }
+            ):Play()
+
             task.wait(0.9)
 
             TweenService:Create(
@@ -66,6 +76,16 @@ local function CreateLoaderScreen(text)
                 TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
                 {Rotation = 45}
             ):Play()
+
+            TweenService:Create(
+                diamond,
+                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                {
+                    Size = UDim2.new(0, 74, 0, 86),
+                    Position = UDim2.fromScale(0.5, 0.455)
+                }
+            ):Play()
+
             task.wait(0.9)
         end
     end)
