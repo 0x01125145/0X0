@@ -4,12 +4,6 @@ while not player do
     player = game.Players.LocalPlayer
 end
 
-gui.IgnoreGuiInset = true
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
-
-
-
 --// UI SETUP
 local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
