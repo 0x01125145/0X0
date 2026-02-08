@@ -12,52 +12,53 @@ local function CreateLoaderScreen(text)
 
     local bg = Instance.new("Frame")
     bg.Size = UDim2.fromScale(1, 1)
-    bg.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    bg.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
     bg.Parent = gui
 
     local center = Instance.new("Frame")
     center.AnchorPoint = Vector2.new(0.5, 0.5)
     center.Position = UDim2.fromScale(0.5, 0.45)
-    center.Size = UDim2.new(0, 160, 0, 160)
-    center.BackgroundTransparency = 1
+    center.Size = UDim2.new(0, 10, 0, 10)
+    center.BackgroundColor3 = Color3.fromRGB(120, 255, 120)
+    center.BackgroundTransparency = 0.2
+    center.BorderSizePixel = 0
     center.Parent = bg
 
-    local function createArc(sizeScale, thickness, color)
-        local arc = Instance.new("Frame")
-        arc.AnchorPoint = Vector2.new(0.5, 0.5)
-        arc.Position = UDim2.fromScale(0.5, 0.5)
-        arc.Size = UDim2.new(sizeScale, 0, sizeScale, 0)
-        arc.BackgroundTransparency = 1
-        arc.Parent = center
+    local function spawnRing()
+        local ring = Instance.new("Frame")
+        ring.AnchorPoint = Vector2.new(0.5, 0.5)
+        ring.Position = UDim2.fromScale(0.5, 0.45)
+        ring.Size = UDim2.new(0, 20, 0, 20)
+        ring.BackgroundTransparency = 1
+        ring.Parent = bg
 
         local stroke = Instance.new("UIStroke")
-        stroke.Thickness = thickness
-        stroke.Color = color
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        stroke.Parent = arc
+        stroke.Thickness = 2
+        stroke.Color = Color3.fromRGB(120, 255, 120)
+        stroke.Transparency = 0
+        stroke.Parent = ring
 
-        local gradient = Instance.new("UIGradient")
-        gradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)),
-            ColorSequenceKeypoint.new(0.5, color),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))
-        })
-        gradient.Rotation = 0
-        gradient.Parent = arc
+        TweenService:Create(
+            ring,
+            TweenInfo.new(1.6, Enum.EasingStyle.Sine),
+            {Size = UDim2.new(0, 350, 0, 350)}
+        ):Play()
 
-        return arc, gradient
+        TweenService:Create(
+            stroke,
+            TweenInfo.new(1.6, Enum.EasingStyle.Sine),
+            {Transparency = 1}
+        ):Play()
+
+        task.delay(1.6, function()
+            ring:Destroy()
+        end)
     end
-
-    local arc1, grad1 = createArc(1, 4, Color3.fromRGB(120, 255, 120))
-    local arc2, grad2 = createArc(0.75, 3, Color3.fromRGB(80, 200, 80))
-    local arc3, grad3 = createArc(0.5, 2, Color3.fromRGB(60, 150, 60))
 
     task.spawn(function()
         while gui.Parent do
-            TweenService:Create(grad1, TweenInfo.new(2, Enum.EasingStyle.Linear), {Rotation = grad1.Rotation + 360}):Play()
-            TweenService:Create(grad2, TweenInfo.new(3, Enum.EasingStyle.Linear), {Rotation = grad2.Rotation - 360}):Play()
-            TweenService:Create(grad3, TweenInfo.new(4, Enum.EasingStyle.Linear), {Rotation = grad3.Rotation + 360}):Play()
-            task.wait(1)
+            spawnRing()
+            task.wait(0.25)
         end
     end)
 
@@ -82,9 +83,11 @@ local function CreateLoaderScreen(text)
 
     task.spawn(function()
         while label.Parent do
-            TweenService:Create(textGradient, TweenInfo.new(2, Enum.EasingStyle.Linear), {
-                Offset = Vector2.new(1, 0)
-            }):Play()
+            TweenService:Create(
+                textGradient,
+                TweenInfo.new(2, Enum.EasingStyle.Linear),
+                {Offset = Vector2.new(1, 0)}
+            ):Play()
             task.wait(2)
             textGradient.Offset = Vector2.new(-1, 0)
             task.wait(0.1)
