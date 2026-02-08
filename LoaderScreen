@@ -7,10 +7,17 @@ while not player do
     player = Players.LocalPlayer
 end
 
-local parentGui
-if gethui then
-    parentGui = gethui()
-else
+-- try gethui(), fallback to PlayerGui if invalid
+local parentGui = nil
+
+if typeof(gethui) == "function" then
+    local ok, result = pcall(gethui)
+    if ok and typeof(result) == "Instance" then
+        parentGui = result
+    end
+end
+
+if not parentGui then
     parentGui = player:WaitForChild("PlayerGui")
 end
 
@@ -58,7 +65,6 @@ local tilts = {
     CFrame.Angles(math.rad(40), math.rad(130), 0),
 }
 
--- nucleus
 local nucleus = Instance.new("Part")
 nucleus.Shape = Enum.PartType.Ball
 nucleus.Size = Vector3.new(1, 1, 1)
@@ -68,7 +74,6 @@ nucleus.Anchored = true
 nucleus.CanCollide = false
 nucleus.Parent = model
 
--- camera position
 cam.CFrame = CFrame.new(Vector3.new(0, 0, 15), Vector3.new(0, 0, 0))
 
 --// ANIMATION
