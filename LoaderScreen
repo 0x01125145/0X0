@@ -83,14 +83,22 @@ local function CreateLoaderScreen(text)
     label.Text = text or "Loading..."
     label.Parent = bg
 
-    task.spawn(function()
-        while label.Parent do
-            TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0.15}):Play()
-            task.wait(1.2)
-            TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
-            task.wait(1.2)
-        end
-    end)
+task.spawn(function()
+    while label.Parent do
+        -- left → right
+        TweenService:Create(
+            textGradient,
+            TweenInfo.new(2, Enum.EasingStyle.Linear),
+            {Offset = Vector2.new(1, 0)}
+        ):Play()
+        task.wait(2)
+
+        -- instantly reset to left (no tween)
+        textGradient.Offset = Vector2.new(-1, 0)
+
+        task.wait(0.1)
+    end
+end)
 
     local textGradient = Instance.new("UIGradient")
     textGradient.Color = ColorSequence.new({
