@@ -1,12 +1,4 @@
---[[
-    Library.lua
-    ===========
-    • Theme engine
-    • Window / Tabs / Sections
-    • Buttons / Toggles / Sliders
-    • Keybind system
-    • Notification system (animated)
-]]
+-- Library.lua core
 
 local Library = {}
 Library.__index = Library
@@ -37,13 +29,11 @@ Library._logo = nil
 Library._keybinds = {}
 Library._uiVisible = true
 
--- ScreenGui
 local HubGui = Instance.new("ScreenGui")
 HubGui.Name = "ScriptHubLibrary"
 HubGui.ResetOnSpawn = false
 HubGui.Parent = playerGui
 
--- Notification GUI
 local NotifGui = Instance.new("ScreenGui")
 NotifGui.Name = "ScriptHubNotifications"
 NotifGui.ResetOnSpawn = false
@@ -61,7 +51,6 @@ NotifLayout.Padding = UDim.new(0, 8)
 NotifLayout.SortOrder = Enum.SortOrder.LayoutOrder
 NotifLayout.Parent = NotifContainer
 
--- Keybind handling
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.UserInputType == Enum.UserInputType.Keyboard then
@@ -73,7 +62,6 @@ UserInputService.InputBegan:Connect(function(input, gp)
     end
 end)
 
--- Theme merge
 local function mergeTheme(base, override)
     if not override then return base end
     local t = {}
@@ -82,7 +70,6 @@ local function mergeTheme(base, override)
     return t
 end
 
--- Public: Init
 function Library:Init(config)
     config = config or {}
     self._name = config.Name or self._name
@@ -91,7 +78,6 @@ function Library:Init(config)
     self._theme = mergeTheme(DefaultTheme, config.Theme)
 end
 
--- Notifications
 function Library:Notify(title, message, notifType, duration)
     notifType = notifType or "info"
     duration = duration or 3
@@ -159,7 +145,6 @@ function Library:Notify(title, message, notifType, duration)
     end)
 end
 
--- Keybinds
 function Library:BindKey(name, keyCode, callback)
     self._keybinds[name] = {
         KeyCode = keyCode,
@@ -167,7 +152,6 @@ function Library:BindKey(name, keyCode, callback)
     }
 end
 
--- UI visibility
 function Library:SetUIVisible(state)
     self._uiVisible = state and true or false
     HubGui.Enabled = self._uiVisible
@@ -177,7 +161,6 @@ function Library:GetUIVisible()
     return self._uiVisible
 end
 
--- Window / Tabs / Sections
 function Library:CreateWindow(config)
     config = config or {}
     local title = config.Title or (self._name .. " | " .. self._version)
