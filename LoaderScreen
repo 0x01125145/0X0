@@ -1,7 +1,23 @@
-local RunService = game:GetService("RunService")
+--// UI SETUP
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
 
-local model = Instance.new("Model", workspace)
-model.Name = "NeonRings"
+local frame = Instance.new("ViewportFrame", gui)
+frame.Size = UDim2.new(0, 300, 0, 300)
+frame.Position = UDim2.new(0.5, -150, 0.5, -150)
+frame.BackgroundTransparency = 1
+frame.LightColor = Color3.fromRGB(255, 255, 255)
+frame.Ambient = Color3.fromRGB(255, 255, 255)
+
+local cam = Instance.new("Camera")
+frame.CurrentCamera = cam
+cam.Parent = frame
+
+--// 3D MODEL
+local model = Instance.new("Model")
+model.Parent = frame
 
 local function makeRing(size, thickness, color)
     local p = Instance.new("Part")
@@ -21,19 +37,42 @@ local rings = {
     makeRing(10, 0.2, Color3.fromRGB(0, 68, 255)),
 }
 
-local angles = {
+local tilts = {
     CFrame.Angles(math.rad(50), 0, 0),
     CFrame.Angles(math.rad(20), math.rad(50), 0),
     CFrame.Angles(math.rad(40), math.rad(130), 0),
 }
 
-RunService.RenderStepped:Connect(function()
+-- nucleus
+local nucleus = Instance.new("Part")
+nucleus.Shape = Enum.PartType.Ball
+nucleus.Size = Vector3.new(1, 1, 1)
+nucleus.Material = Enum.Material.Neon
+nucleus.Color = Color3.fromRGB(254, 83, 187)
+nucleus.Anchored = true
+nucleus.CanCollide = false
+nucleus.Parent = model
+
+-- camera position
+cam.CFrame = CFrame.new(Vector3.new(0, 0, 15), Vector3.new(0, 0, 0))
+
+--// ANIMATION
+local RunService = game:GetService("RunService")
+local pulse = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    pulse += dt * 4
+    local scale = 1 + math.sin(pulse) * 0.2
+    nucleus.Size = Vector3.new(scale, scale, scale)
+
     local t = tick()
 
     for i, ring in ipairs(rings) do
-        local base = CFrame.new(0, 5, 0)
-        local tilt = angles[i]
+        local base = CFrame.new(0, 0, 0)
+        local tilt = tilts[i]
         local spin = CFrame.Angles(0, 0, math.rad(t * (150 + i * 80)))
         ring.CFrame = base * tilt * spin
     end
+
+    nucleus.CFrame = CFrame.new(0, 0, 0)
 end)
