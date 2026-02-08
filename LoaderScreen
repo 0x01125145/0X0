@@ -1,98 +1,105 @@
---// SAFE PLAYER + GUI SETUP
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+-- 3D Metallic Diamond (Layered Illusion)
+local diamond = Instance.new("Frame")
+diamond.AnchorPoint = Vector2.new(0.5, 0.5)
+diamond.Position = UDim2.fromScale(0.5, 0.45)
+diamond.Size = UDim2.new(0, 90, 0, 90)
+diamond.BackgroundTransparency = 1
+diamond.Parent = bg
 
-while not player do
-    task.wait()
-    player = Players.LocalPlayer
-end
+-- Front face (bright metal)
+local faceFront = Instance.new("Frame")
+faceFront.AnchorPoint = Vector2.new(0.5, 0.5)
+faceFront.Position = UDim2.fromScale(0.5, 0.5)
+faceFront.Size = UDim2.new(1, 0, 1, 0)
+faceFront.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+faceFront.BorderSizePixel = 0
+faceFront.Rotation = 45
+faceFront.Parent = diamond
 
--- try gethui(), fallback to PlayerGui if invalid
-local parentGui = nil
-
-if typeof(gethui) == "function" then
-    local ok, result = pcall(gethui)
-    if ok and typeof(result) == "Instance" then
-        parentGui = result
-    end
-end
-
-if not parentGui then
-    parentGui = player:WaitForChild("PlayerGui")
-end
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "NeonRingLoader"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.Parent = parentGui
-
---// VIEWPORTFRAME
-local frame = Instance.new("ViewportFrame", gui)
-frame.Size = UDim2.new(0, 300, 0, 300)
-frame.Position = UDim2.new(0.5, -150, 0.5, -150)
-frame.BackgroundTransparency = 1
-
-local cam = Instance.new("Camera")
-frame.CurrentCamera = cam
-cam.Parent = frame
-
---// 3D MODEL
-local model = Instance.new("Model")
-model.Parent = frame
-
-local function makeRing(size, thickness, color)
-    local p = Instance.new("Part")
-    p.Anchored = true
-    p.CanCollide = false
-    p.Material = Enum.Material.Neon
-    p.Color = color
-    p.Shape = Enum.PartType.Cylinder
-    p.Size = Vector3.new(thickness, size, size)
-    p.Parent = model
-    return p
-end
-
-local rings = {
-    makeRing(10, 0.2, Color3.fromRGB(254, 83, 187)),
-    makeRing(10, 0.2, Color3.fromRGB(143, 81, 234)),
-    makeRing(10, 0.2, Color3.fromRGB(0, 68, 255)),
+local frontGrad = Instance.new("UIGradient")
+frontGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(230,230,230)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(150,150,150))
 }
+frontGrad.Rotation = 90
+frontGrad.Parent = faceFront
 
-local tilts = {
-    CFrame.Angles(math.rad(50), 0, 0),
-    CFrame.Angles(math.rad(20), math.rad(50), 0),
-    CFrame.Angles(math.rad(40), math.rad(130), 0),
+-- Side face (darker metal)
+local faceSide = Instance.new("Frame")
+faceSide.AnchorPoint = Vector2.new(0.5, 0.5)
+faceSide.Position = UDim2.fromScale(0.5, 0.5)
+faceSide.Size = UDim2.new(1, 0, 1, 0)
+faceSide.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+faceSide.BorderSizePixel = 0
+faceSide.Rotation = 45
+faceSide.Parent = diamond
+
+local sideGrad = Instance.new("UIGradient")
+sideGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(160,160,160)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80,80,80))
 }
+sideGrad.Rotation = -90
+sideGrad.Parent = faceSide
 
-local nucleus = Instance.new("Part")
-nucleus.Shape = Enum.PartType.Ball
-nucleus.Size = Vector3.new(1, 1, 1)
-nucleus.Material = Enum.Material.Neon
-nucleus.Color = Color3.fromRGB(254, 83, 187)
-nucleus.Anchored = true
-nucleus.CanCollide = false
-nucleus.Parent = model
+-- Inner glow core
+local core = Instance.new("Frame")
+core.AnchorPoint = Vector2.new(0.5, 0.5)
+core.Position = UDim2.fromScale(0.5, 0.5)
+core.Size = UDim2.new(0.6, 0, 0.6, 0)
+core.BackgroundColor3 = Color3.fromRGB(140, 255, 120)
+core.BackgroundTransparency = 0.7
+core.BorderSizePixel = 0
+core.Rotation = 45
+core.Parent = diamond
 
-cam.CFrame = CFrame.new(Vector3.new(0, 0, 15), Vector3.new(0, 0, 0))
+-- Shine sweep
+local shine = Instance.new("Frame")
+shine.AnchorPoint = Vector2.new(0.5, 0.5)
+shine.Position = UDim2.fromScale(0.5, 0.5)
+shine.Size = UDim2.new(1.2, 0, 1.2, 0)
+shine.BackgroundTransparency = 1
+shine.Parent = diamond
 
---// ANIMATION
-local RunService = game:GetService("RunService")
-local pulse = 0
+local shineGrad = Instance.new("UIGradient")
+shineGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255,255,255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+}
+shineGrad.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0.2),
+    NumberSequenceKeypoint.new(1, 1)
+}
+shineGrad.Rotation = 45
+shineGrad.Parent = shine
 
-RunService.RenderStepped:Connect(function(dt)
-    pulse += dt * 4
-    local scale = 1 + math.sin(pulse) * 0.2
-    nucleus.Size = Vector3.new(scale, scale, scale)
-
-    local t = tick()
-
-    for i, ring in ipairs(rings) do
-        local base = CFrame.new(0, 0, 0)
-        local tilt = tilts[i]
-        local spin = CFrame.Angles(0, 0, math.rad(t * (150 + i * 80)))
-        ring.CFrame = base * tilt * spin
+-- Shine animation
+task.spawn(function()
+    while shine.Parent do
+        TweenService:Create(
+            shineGrad,
+            TweenInfo.new(1.8, Enum.EasingStyle.Sine),
+            {Offset = Vector2.new(1, 0)}
+        ):Play()
+        task.wait(1.8)
+        shineGrad.Offset = Vector2.new(-1, 0)
+        task.wait(0.1)
     end
+end)
 
-    nucleus.CFrame = CFrame.new(0, 0, 0)
+-- 3D rotation illusion
+task.spawn(function()
+    while diamond.Parent do
+        TweenService:Create(faceFront, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 135}):Play()
+        TweenService:Create(faceSide, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 120}):Play()
+        TweenService:Create(core, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 160}):Play()
+        task.wait(1.2)
+
+        TweenService:Create(faceFront, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 45}):Play()
+        TweenService:Create(faceSide, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 60}):Play()
+        TweenService:Create(core, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 20}):Play()
+        task.wait(1.2)
+    end
 end)
