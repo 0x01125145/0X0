@@ -15,77 +15,62 @@ local function CreateLoaderScreen(text)
     bg.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
     bg.Parent = gui
 
-    local center = Instance.new("Frame")
-    center.AnchorPoint = Vector2.new(0.5, 0.5)
-    center.Position = UDim2.fromScale(0.5, 0.45)
-    center.Size = UDim2.new(0, 14, 0, 14)
-    center.BackgroundColor3 = Color3.fromRGB(120, 255, 120)
-    center.BackgroundTransparency = 0.1
-    center.BorderSizePixel = 0
-    center.Parent = bg
+    local glyph = Instance.new("Frame")
+    glyph.AnchorPoint = Vector2.new(0.5, 0.5)
+    glyph.Position = UDim2.fromScale(0.5, 0.45)
+    glyph.Size = UDim2.new(0, 120, 0, 120)
+    glyph.BackgroundTransparency = 1
+    glyph.Parent = bg
+
+    local function line(x1, y1, x2, y2)
+        local l = Instance.new("Frame")
+        l.AnchorPoint = Vector2.new(0.5, 0.5)
+        l.BackgroundTransparency = 1
+        l.Size = UDim2.new(0, 4, 0, 60)
+        l.Position = UDim2.fromScale(x1, y1)
+        l.Parent = glyph
+
+        local s = Instance.new("UIStroke")
+        s.Thickness = 3
+        s.Color = Color3.fromRGB(120, 255, 120)
+        s.Transparency = 0.1
+        s.Parent = l
+
+        local dx = x2 - x1
+        local dy = y2 - y1
+        local angle = math.deg(math.atan2(dy, dx))
+        l.Rotation = angle
+
+        return l
+    end
+
+    line(0.35, 0.25, 0.65, 0.45)
+    line(0.65, 0.45, 0.35, 0.65)
+    line(0.65, 0.25, 0.35, 0.45)
+    line(0.35, 0.45, 0.65, 0.65)
 
     local glow = Instance.new("UIStroke")
     glow.Thickness = 6
     glow.Color = Color3.fromRGB(120, 255, 120)
-    glow.Transparency = 0.4
+    glow.Transparency = 0.7
     glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Outline
-    glow.Parent = center
+    glow.Parent = glyph
 
     task.spawn(function()
         while gui.Parent do
-            TweenService:Create(glow, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {
-                Transparency = 0.1
+            TweenService:Create(glyph, TweenInfo.new(2.4, Enum.EasingStyle.Linear), {
+                Rotation = glyph.Rotation + 360
             }):Play()
-            TweenService:Create(center, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {
-                BackgroundTransparency = 0.05
+
+            TweenService:Create(glow, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {
+                Transparency = 0.3
             }):Play()
             task.wait(1.2)
 
             TweenService:Create(glow, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {
-                Transparency = 0.5
-            }):Play()
-            TweenService:Create(center, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {
-                BackgroundTransparency = 0.2
+                Transparency = 0.7
             }):Play()
             task.wait(1.2)
-        end
-    end)
-
-    local function spawnRing()
-        local ring = Instance.new("Frame")
-        ring.AnchorPoint = Vector2.new(0.5, 0.5)
-        ring.Position = UDim2.fromScale(0.5, 0.45)
-        ring.Size = UDim2.new(0, 20, 0, 20)
-        ring.BackgroundTransparency = 1
-        ring.Parent = bg
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Thickness = 3
-        stroke.Color = Color3.fromRGB(120, 255, 120)
-        stroke.Transparency = 0
-        stroke.Parent = ring
-
-        TweenService:Create(
-            ring,
-            TweenInfo.new(1.8, Enum.EasingStyle.Sine),
-            {Size = UDim2.new(0, 380, 0, 380)}
-        ):Play()
-
-        TweenService:Create(
-            stroke,
-            TweenInfo.new(1.8, Enum.EasingStyle.Sine),
-            {Transparency = 1}
-        ):Play()
-
-        task.delay(1.8, function()
-            ring:Destroy()
-        end)
-    end
-
-    task.spawn(function()
-        while gui.Parent do
-            spawnRing()
-            task.wait(0.22)
         end
     end)
 
@@ -130,7 +115,8 @@ local function CreateLoaderScreen(text)
             TextTransparency = 1
         }):Play()
 
-        TweenService:Create(center, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {
+        TweenService:Create(glyph, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {
+            Rotation = glyph.Rotation + 180,
             Size = UDim2.new(0, 0, 0, 0)
         }):Play()
 
