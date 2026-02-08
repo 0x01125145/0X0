@@ -30,20 +30,45 @@ local function CreateLoaderScreen(text)
     ):Play()
 
     local diamond = Instance.new("Frame")
-    diamond.AnchorPoint = Vector2.new(0.5, 0.5)
-    diamond.Position = UDim2.fromScale(0.5, 0.45)
-    diamond.Size = UDim2.new(0, 80, 0, 80)
-    diamond.BackgroundTransparency = 1
-    diamond.Parent = bg
+diamond.AnchorPoint = Vector2.new(0.5, 0.5)
+diamond.Position = UDim2.fromScale(0.5, 0.45)
+diamond.Size = UDim2.new(0, 80, 0, 80)
+diamond.BackgroundTransparency = 1
+diamond.Parent = bg
 
-    local backFace = Instance.new("Frame")
-    backFace.AnchorPoint = Vector2.new(0.5, 0.5)
-    backFace.Position = UDim2.fromScale(0.5, 0.5)
-    backFace.Size = UDim2.new(1, 0, 1, 0)
-    backFace.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    backFace.BorderSizePixel = 0
-    backFace.Rotation = 45
-    backFace.Parent = diamond
+local outline = Instance.new("Frame")
+outline.AnchorPoint = Vector2.new(0.5, 0.5)
+outline.Position = UDim2.fromScale(0.5, 0.5)
+outline.Size = UDim2.new(1, 0, 1, 0)
+outline.BackgroundTransparency = 1
+outline.BorderSizePixel = 2
+outline.BorderColor3 = Color3.fromRGB(150, 255, 120)
+outline.Rotation = 45
+outline.Parent = diamond
+
+local glow = Instance.new("UIStroke")
+glow.Thickness = 2
+glow.Color = Color3.fromRGB(150, 255, 120)
+glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+glow.Parent = outline
+
+task.spawn(function()
+    while diamond.Parent do
+        TweenService:Create(
+            outline,
+            TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {Rotation = 135}
+        ):Play()
+        task.wait(0.9)
+
+        TweenService:Create(
+            outline,
+            TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {Rotation = 45}
+        ):Play()
+        task.wait(0.9)
+    end
+end)
 
     local backGrad = Instance.new("UIGradient")
     backGrad.Color = ColorSequence.new{
