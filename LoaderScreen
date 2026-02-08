@@ -7,65 +7,50 @@ local function CreateLoaderScreen(text)
     local gui = Instance.new("ScreenGui")
     gui.IgnoreGuiInset = true
     gui.ResetOnSpawn = false
-    gui.Name = "HubLoading"
+    gui.Name = "ModernLoader"
     gui.Parent = playerGui
 
     local bg = Instance.new("Frame")
     bg.Size = UDim2.fromScale(1, 1)
-    bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
     bg.Parent = gui
 
-    local gradient = Instance.new("UIGradient")
-    gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(106,145,19)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20,21,23))
-    })
-    gradient.Rotation = 0
-    gradient.Parent = bg
-
-    TweenService:Create(
-        gradient,
-        TweenInfo.new(22, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1),
-        {Rotation = 360}
-    ):Play()
-
     --------------------------------------------------------------------
-    -- TRIANGLE SPINNER (replaces diamond)
+    -- ARC SPINNER (modern)
     --------------------------------------------------------------------
 
-    local tri = Instance.new("Frame")
-    tri.AnchorPoint = Vector2.new(0.5, 0.5)
-    tri.Position = UDim2.fromScale(0.5, 0.45)
-    tri.Size = UDim2.new(0, 90, 0, 90)
-    tri.BackgroundTransparency = 1
-    tri.Parent = bg
+    local spinner = Instance.new("Frame")
+    spinner.AnchorPoint = Vector2.new(0.5, 0.5)
+    spinner.Position = UDim2.fromScale(0.5, 0.45)
+    spinner.Size = UDim2.new(0, 90, 0, 90)
+    spinner.BackgroundTransparency = 1
+    spinner.Parent = bg
 
-    local function makeLine()
-        local l = Instance.new("Frame")
-        l.AnchorPoint = Vector2.new(0.5, 0.5)
-        l.Position = UDim2.fromScale(0.5, 0.5)
-        l.Size = UDim2.new(1, 0, 0, 3)
-        l.BackgroundColor3 = Color3.fromRGB(150, 255, 120)
-        l.BorderSizePixel = 0
-        return l
-    end
+    local arc = Instance.new("Frame")
+    arc.AnchorPoint = Vector2.new(0.5, 0.5)
+    arc.Position = UDim2.fromScale(0.5, 0.5)
+    arc.Size = UDim2.new(1, 0, 1, 0)
+    arc.BackgroundTransparency = 1
+    arc.Parent = spinner
 
-    local lines = {}
-    for i = 1, 3 do
-        local ln = makeLine()
-        ln.Parent = tri
-        lines[i] = ln
-    end
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 4
+    stroke.Color = Color3.fromRGB(120, 255, 150)
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.LineJoinMode = Enum.LineJoinMode.Round
+    stroke.Parent = arc
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = arc
 
     task.spawn(function()
-        while tri.Parent do
-            for i, ln in ipairs(lines) do
-                TweenService:Create(
-                    ln,
-                    TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                    {Rotation = ln.Rotation + 120}
-                ):Play()
-            end
+        while spinner.Parent do
+            TweenService:Create(
+                spinner,
+                TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                {Rotation = spinner.Rotation + 180}
+            ):Play()
             task.wait(1.2)
         end
     end)
@@ -79,49 +64,23 @@ local function CreateLoaderScreen(text)
     label.Position = UDim2.fromScale(0.5, 0.62)
     label.Size = UDim2.new(0, 400, 0, 40)
     label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamMedium
+    label.TextColor3 = Color3.fromRGB(230, 230, 230)
     label.TextScaled = true
     label.Text = text or "Loading..."
     label.Parent = bg
 
     task.spawn(function()
         while label.Parent do
-            TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0.15}):Play()
+            TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0.3}):Play()
             task.wait(1.2)
             TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
             task.wait(1.2)
         end
     end)
 
-    local textGradient = Instance.new("UIGradient")
-    textGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(106,145,19)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20,21,23))
-    })
-    textGradient.Rotation = 0
-    textGradient.Parent = label
-
-    task.spawn(function()
-        while label.Parent do
-            TweenService:Create(
-                textGradient,
-                TweenInfo.new(2, Enum.EasingStyle.Linear),
-                {Offset = Vector2.new(1, 0)}
-            ):Play()
-            task.wait(2)
-
-            TweenService:Create(
-                textGradient,
-                TweenInfo.new(2, Enum.EasingStyle.Linear),
-                {Offset = Vector2.new(-1, 0)}
-            ):Play()
-            task.wait(2)
-        end
-    end)
-
     --------------------------------------------------------------------
-    -- PARTICLES
+    -- SOFT PARTICLES
     --------------------------------------------------------------------
 
     local particleFolder = Instance.new("Folder")
@@ -129,10 +88,10 @@ local function CreateLoaderScreen(text)
 
     local function spawnParticle()
         local p = Instance.new("Frame")
-        p.Size = UDim2.new(0, math.random(2, 4), 0, math.random(2, 4))
+        p.Size = UDim2.new(0, math.random(2, 3), 0, math.random(2, 3))
         p.Position = UDim2.new(math.random(), 0, math.random(), 0)
-        p.BackgroundColor3 = Color3.fromRGB(150, 255, 120)
-        p.BackgroundTransparency = 0.85
+        p.BackgroundColor3 = Color3.fromRGB(120, 255, 150)
+        p.BackgroundTransparency = 0.9
         p.BorderSizePixel = 0
         p.Parent = particleFolder
 
@@ -153,7 +112,7 @@ local function CreateLoaderScreen(text)
     task.spawn(function()
         while gui.Parent do
             spawnParticle()
-            task.wait(0.12)
+            task.wait(0.15)
         end
     end)
 
@@ -172,6 +131,12 @@ local function CreateLoaderScreen(text)
             label,
             TweenInfo.new(0.6, Enum.EasingStyle.Sine),
             {TextTransparency = 1}
+        ):Play()
+
+        TweenService:Create(
+            spinner,
+            TweenInfo.new(0.6, Enum.EasingStyle.Sine),
+            {Rotation = spinner.Rotation + 180}
         ):Play()
 
         task.wait(0.6)
