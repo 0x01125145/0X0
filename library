@@ -1,0 +1,191 @@
+-- HubLibrary (Seliware-compatible)
+
+local Hub = {}
+Hub.__index = Hub
+
+local function safeParent()
+    return (gethui and gethui()) or game.CoreGui
+end
+
+local function newGui(name)
+    local g = Instance.new("ScreenGui")
+    g.Name = name
+    g.IgnoreGuiInset = true
+    g.ResetOnSpawn = false
+    g.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    g.Parent = safeParent()
+    return g
+end
+
+--------------------------------------------------------------------
+-- LOADING SCREEN
+--------------------------------------------------------------------
+
+function Hub.ShowLoading()
+    if Hub.LoadingGui then
+        Hub.LoadingGui.Enabled = true
+        return
+    end
+
+    local gui = newGui("HubLoading")
+
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.new(1,0,1,0)
+    bg.BackgroundColor3 = Color3.fromRGB(10,10,10)
+    bg.Parent = gui
+
+    local text = Instance.new("TextLabel")
+    text.Size = UDim2.new(0,200,0,50)
+    text.Position = UDim2.new(0.5,-100,0.5,-25)
+    text.BackgroundTransparency = 1
+    text.Font = Enum.Font.GothamBold
+    text.TextSize = 24
+    text.TextColor3 = Color3.new(1,1,1)
+    text.Text = "Loading..."
+    text.Parent = bg
+
+    Hub.LoadingGui = gui
+end
+
+function Hub.HideLoading()
+    if Hub.LoadingGui then
+        Hub.LoadingGui.Enabled = false
+    end
+end
+
+--------------------------------------------------------------------
+-- NOTIFICATIONS
+--------------------------------------------------------------------
+
+function Hub.Notify(text, duration)
+    duration = duration or 3
+
+    if not Hub.NotifGui then
+        local gui = newGui("HubNotifications")
+
+        local container = Instance.new("Frame")
+        container.Size = UDim2.new(0,300,1,-40)
+        container.Position = UDim2.new(1,-320,0,20)
+        container.BackgroundTransparency = 1
+        container.Parent = gui
+
+        local list = Instance.new("UIListLayout")
+        list.Padding = UDim.new(0,6)
+        list.HorizontalAlignment = Enum.HorizontalAlignment.Right
+        list.VerticalAlignment = Enum.VerticalAlignment.Top
+        list.Parent = container
+
+        Hub.NotifGui = gui
+        Hub.NotifContainer = container
+    end
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1,0,0,40)
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    frame.Parent = Hub.NotifContainer
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,-16,1,0)
+    label.Position = UDim2.new(0,8,0,0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+    label.TextColor3 = Color3.new(1,1,1)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = text
+    label.Parent = frame
+
+    task.delay(duration, function()
+        if frame then frame:Destroy() end
+    end)
+end
+
+--------------------------------------------------------------------
+-- MAIN HUB UI
+--------------------------------------------------------------------
+
+function Hub:Init()
+    if Hub.MainGui then return end
+
+    local gui = newGui("HubMain")
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0,400,0,260)
+    frame.Position = UDim2.new(0.5,-200,0.5,-130)
+    frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    frame.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,8)
+    corner.Parent = frame
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1,-20,0,30)
+    title.Position = UDim2.new(0,10,0,10)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextColor3 = Color3.new(1,1,1)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Text = self.Config.Title or "Hub"
+    title.Parent = frame
+
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1,-20,1,-60)
+    content.Position = UDim2.new(0,10,0,50)
+    content.BackgroundTransparency = 1
+    content.Parent = frame
+
+    local list = Instance.new("UIListLayout")
+    list.Padding = UDim.new(0,6)
+    list.Parent = content
+
+    Hub.MainGui = gui
+    Hub.Content = content
+end
+
+function Hub:Open()
+    if not Hub.MainGui then self:Init() end
+    Hub.MainGui.Enabled = true
+end
+
+function Hub:Close()
+    if Hub.MainGui then Hub.MainGui.Enabled = false end
+end
+
+function Hub:AddButton(info)
+    if not Hub.MainGui then self:Init() end
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,0,0,32)
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 16
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Text = info.Text or "Button"
+    btn.Parent = Hub.Content
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        if info.Callback then info.Callback() end
+    end)
+end
+
+--------------------------------------------------------------------
+-- CONSTRUCTOR
+--------------------------------------------------------------------
+
+function Hub.new(config)
+    local self = setmetatable({}, Hub)
+    self.Config = config or { Title = "Hub" }
+    return self
+end
+
+return Hub
