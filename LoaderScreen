@@ -1,76 +1,77 @@
 local RunService = game:GetService("RunService")
 
--- Create a model for the cube
-local cube = Instance.new("Model")
-cube.Name = "WireCube"
-cube.Parent = workspace
+local loader = Instance.new("Model")
+loader.Name = "NeonRingLoader"
+loader.Parent = workspace
 
-local size = 4                 -- cube size
-local thickness = 0.05         -- line thickness
-local color = Color3.fromRGB(0, 77, 255) -- neon blue like CSS
+local function createRing(radius, thickness, color)
+    local ring = Instance.new("Part")
+    ring.Anchored = true
+    ring.CanCollide = false
+    ring.Transparency = 1
+    ring.Size = Vector3.new(radius, radius, radius)
+    ring.Parent = loader
 
--- 12 cube edges (start → end)
-local edges = {
-    -- bottom square
-    {Vector3.new(-1,-1,-1), Vector3.new(1,-1,-1)},
-    {Vector3.new(1,-1,-1), Vector3.new(1,-1,1)},
-    {Vector3.new(1,-1,1), Vector3.new(-1,-1,1)},
-    {Vector3.new(-1,-1,1), Vector3.new(-1,-1,-1)},
+    local mesh = Instance.new("SpecialMesh", ring)
+    mesh.MeshType = Enum.MeshType.Torus
+    mesh.Scale = Vector3.new(radius, thickness, radius)
 
-    -- top square
-    {Vector3.new(-1,1,-1), Vector3.new(1,1,-1)},
-    {Vector3.new(1,1,-1), Vector3.new(1,1,1)},
-    {Vector3.new(1,1,1), Vector3.new(-1,1,1)},
-    {Vector3.new(-1,1,1), Vector3.new(-1,1,-1)},
+    local glow = Instance.new("Part")
+    glow.Anchored = true
+    glow.CanCollide = false
+    glow.Size = Vector3.new(0.1, 0.1, 0.1)
+    glow.Color = color
+    glow.Material = Enum.Material.Neon
+    glow.Parent = loader
 
-    -- vertical edges
-    {Vector3.new(-1,-1,-1), Vector3.new(-1,1,-1)},
-    {Vector3.new(1,-1,-1), Vector3.new(1,1,-1)},
-    {Vector3.new(1,-1,1), Vector3.new(1,1,1)},
-    {Vector3.new(-1,-1,1), Vector3.new(-1,1,1)},
+    return ring, glow
+end
+
+local rings = {
+    {radius = 6, thickness = 0.15, color = Color3.fromRGB(254, 83, 187), speed = Vector3.new(0, 0, 180)},
+    {radius = 6, thickness = 0.15, color = Color3.fromRGB(143, 81, 234), speed = Vector3.new(0, 0, -220)},
+    {radius = 6, thickness = 0.15, color = Color3.fromRGB(0, 68, 255), speed = Vector3.new(0, 0, 260)},
+
+    {radius = 12, thickness = 0.25, color = Color3.fromRGB(254, 83, 187), speed = Vector3.new(0, 0, -180)},
+    {radius = 12, thickness = 0.25, color = Color3.fromRGB(143, 81, 234), speed = Vector3.new(0, 0, 220)},
+    {radius = 12, thickness = 0.25, color = Color3.fromRGB(0, 68, 255), speed = Vector3.new(0, 0, -260)},
 }
 
-local parts = {}
+local ringObjects = {}
 
-local function createEdge(a, b)
-    local p = Instance.new("Part")
-    p.Anchored = true
-    p.CanCollide = false
-    p.Material = Enum.Material.Neon
-    p.Color = color
-    p.Size = Vector3.new(thickness, thickness, (b - a).Magnitude)
-    p.CFrame = CFrame.new(a, b) * CFrame.new(0, 0, -((b - a).Magnitude / 2))
-    p.Parent = cube
-    table.insert(parts, p)
+for _, r in ipairs(rings) do
+    local ring, glow = createRing(r.radius, r.thickness, r.color)
+    table.insert(ringObjects, {ring = ring, glow = glow, speed = r.speed})
 end
 
--- Build all edges
-for _, edge in ipairs(edges) do
-    createEdge(edge[1] * size, edge[2] * size)
-end
+local nucleus = Instance.new("Part")
+nucleus.Shape = Enum.PartType.Ball
+nucleus.Size = Vector3.new(1, 1, 1)
+nucleus.Color = Color3.fromRGB(254, 83, 187)
+nucleus.Material = Enum.Material.Neon
+nucleus.Anchored = true
+nucleus.CanCollide = false
+nucleus.Parent = loader
 
--- Rotation angles
-local angleX = 0
-local angleY = 0
-local angleZ = 0
+local pulse = 0
 
--- Animate cube
 RunService.RenderStepped:Connect(function(dt)
-    angleX += math.rad(180) * dt * 2     -- fast X rotation
-    angleY += math.rad(360) * dt * 1.5   -- faster Y rotation
-    angleZ += math.rad(90) * dt * 1      -- slow Z rotation
+    pulse += dt * 4
+    local scale = 1 + math.sin(pulse) * 0.2
+    nucleus.Size = Vector3.new(scale, scale, scale)
 
-    local rot = CFrame.Angles(angleX, angleY, angleZ)
+    for _, obj in ipairs(ringObjects) do
+        local ring = obj.ring
+        local glow = obj.glow
+        local speed = obj.speed
 
-    for i, edge in ipairs(edges) do
-        local a = (edge[1] * size)
-        local b = (edge[2] * size)
+        local rot = CFrame.Angles(
+            math.rad(speed.X * tick() * 0.1),
+            math.rad(speed.Y * tick() * 0.1),
+            math.rad(speed.Z * tick() * 0.1)
+        )
 
-        local pa = rot:PointToWorldSpace(a)
-        local pb = rot:PointToWorldSpace(b)
-
-        local p = parts[i]
-        p.CFrame = CFrame.new(pa, pb) * CFrame.new(0, 0, -((pb - pa).Magnitude / 2))
-        p.Size = Vector3.new(thickness, thickness, (pb - pa).Magnitude)
+        ring.CFrame = CFrame.new(0, 5, 0) * rot
+        glow.CFrame = ring.CFrame
     end
 end)
