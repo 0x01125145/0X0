@@ -32,45 +32,101 @@ local function CreateLoaderScreen(text)
     local diamond = Instance.new("Frame")
     diamond.AnchorPoint = Vector2.new(0.5, 0.5)
     diamond.Position = UDim2.fromScale(0.5, 0.45)
-    diamond.Size = UDim2.new(0, 80, 0, 80)
+    diamond.Size = UDim2.new(0, 90, 0, 90)
     diamond.BackgroundTransparency = 1
     diamond.Parent = bg
 
-    local outline = Instance.new("Frame")
-    outline.AnchorPoint = Vector2.new(0.5, 0.5)
-    outline.Position = UDim2.fromScale(0.5, 0.5)
-    outline.Size = UDim2.new(1, 0, 1, 0)
-    outline.BackgroundTransparency = 1
-    outline.BorderSizePixel = 2
-    outline.BorderColor3 = Color3.fromRGB(150, 255, 120)
-    outline.Rotation = 45
-    outline.Parent = diamond
+    local faceFront = Instance.new("Frame")
+    faceFront.AnchorPoint = Vector2.new(0.5, 0.5)
+    faceFront.Position = UDim2.fromScale(0.5, 0.5)
+    faceFront.Size = UDim2.new(1, 0, 1, 0)
+    faceFront.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    faceFront.BorderSizePixel = 0
+    faceFront.Rotation = 45
+    faceFront.Parent = diamond
 
-    local glow = Instance.new("UIStroke")
-    glow.Thickness = 2
-    glow.Color = Color3.fromRGB(150, 255, 120)
-    glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    glow.Parent = outline
+    local frontGrad = Instance.new("UIGradient")
+    frontGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(230,230,230)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(150,150,150))
+    }
+    frontGrad.Rotation = 90
+    frontGrad.Parent = faceFront
 
-    local function animateDiamond()
-        while diamond.Parent do
+    local faceSide = Instance.new("Frame")
+    faceSide.AnchorPoint = Vector2.new(0.5, 0.5)
+    faceSide.Position = UDim2.fromScale(0.5, 0.5)
+    faceSide.Size = UDim2.new(1, 0, 1, 0)
+    faceSide.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+    faceSide.BorderSizePixel = 0
+    faceSide.Rotation = 45
+    faceSide.Parent = diamond
+
+    local sideGrad = Instance.new("UIGradient")
+    sideGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(160,160,160)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(80,80,80))
+    }
+    sideGrad.Rotation = -90
+    sideGrad.Parent = faceSide
+
+    local core = Instance.new("Frame")
+    core.AnchorPoint = Vector2.new(0.5, 0.5)
+    core.Position = UDim2.fromScale(0.5, 0.5)
+    core.Size = UDim2.new(0.6, 0, 0.6, 0)
+    core.BackgroundColor3 = Color3.fromRGB(140, 255, 120)
+    core.BackgroundTransparency = 0.7
+    core.BorderSizePixel = 0
+    core.Rotation = 45
+    core.Parent = diamond
+
+    local shine = Instance.new("Frame")
+    shine.AnchorPoint = Vector2.new(0.5, 0.5)
+    shine.Position = UDim2.fromScale(0.5, 0.5)
+    shine.Size = UDim2.new(1.2, 0, 1.2, 0)
+    shine.BackgroundTransparency = 1
+    shine.Parent = diamond
+
+    local shineGrad = Instance.new("UIGradient")
+    shineGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255,255,255))
+    }
+    shineGrad.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0.2),
+        NumberSequenceKeypoint.new(1, 1)
+    }
+    shineGrad.Rotation = 45
+    shineGrad.Parent = shine
+
+    task.spawn(function()
+        while shine.Parent do
             TweenService:Create(
-                outline,
-                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                {Rotation = 135}
+                shineGrad,
+                TweenInfo.new(1.8, Enum.EasingStyle.Sine),
+                {Offset = Vector2.new(1, 0)}
             ):Play()
-            task.wait(0.9)
-
-            TweenService:Create(
-                outline,
-                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                {Rotation = 45}
-            ):Play()
-            task.wait(0.9)
+            task.wait(1.8)
+            shineGrad.Offset = Vector2.new(-1, 0)
+            task.wait(0.1)
         end
-    end
+    end)
 
-    task.spawn(animateDiamond)
+    task.spawn(function()
+        while diamond.Parent do
+            TweenService:Create(faceFront, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 135}):Play()
+            TweenService:Create(faceSide, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 120}):Play()
+            TweenService:Create(core, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 160}):Play()
+            task.wait(1.2)
+
+            TweenService:Create(faceFront, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 45}):Play()
+            TweenService:Create(faceSide, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 60}):Play()
+            TweenService:Create(core, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {Rotation = 20}):Play()
+            task.wait(1.2)
+        end
+    end)
 
     local label = Instance.new("TextLabel")
     label.AnchorPoint = Vector2.new(0.5, 0)
@@ -82,23 +138,6 @@ local function CreateLoaderScreen(text)
     label.TextScaled = true
     label.Text = text or "Loading..."
     label.Parent = bg
-
-task.spawn(function()
-    while label.Parent do
-        -- left → right
-        TweenService:Create(
-            textGradient,
-            TweenInfo.new(2, Enum.EasingStyle.Linear),
-            {Offset = Vector2.new(1, 0)}
-        ):Play()
-        task.wait(2)
-
-        -- instantly reset to left (no tween)
-        textGradient.Offset = Vector2.new(-1, 0)
-
-        task.wait(0.1)
-    end
-end)
 
     local textGradient = Instance.new("UIGradient")
     textGradient.Color = ColorSequence.new({
@@ -116,13 +155,8 @@ end)
                 {Offset = Vector2.new(1, 0)}
             ):Play()
             task.wait(2)
-
-            TweenService:Create(
-                textGradient,
-                TweenInfo.new(2, Enum.EasingStyle.Linear),
-                {Offset = Vector2.new(-1, 0)}
-            ):Play()
-            task.wait(2)
+            textGradient.Offset = Vector2.new(-1, 0)
+            task.wait(0.1)
         end
     end)
 
@@ -173,7 +207,7 @@ end)
         ):Play()
 
         TweenService:Create(
-            outline,
+            faceFront,
             TweenInfo.new(0.6, Enum.EasingStyle.Sine),
             {BackgroundTransparency = 1}
         ):Play()
