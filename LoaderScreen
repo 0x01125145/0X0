@@ -78,7 +78,7 @@ local function CreateLoaderScreen(text)
     label.Size = UDim2.new(0, 400, 0, 40)
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
-    label.TextColor3 = Color3.fromRGB(150, 255, 120)
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextScaled = true
     label.Text = text or "Loading..."
     label.Parent = bg
@@ -89,6 +89,32 @@ local function CreateLoaderScreen(text)
             task.wait(1.2)
             TweenService:Create(label, TweenInfo.new(1.2, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
             task.wait(1.2)
+        end
+    end)
+
+    local textGradient = Instance.new("UIGradient")
+    textGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(106,145,19)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20,21,23))
+    })
+    textGradient.Rotation = 0
+    textGradient.Parent = label
+
+    task.spawn(function()
+        while label.Parent do
+            TweenService:Create(
+                textGradient,
+                TweenInfo.new(2, Enum.EasingStyle.Linear),
+                {Offset = Vector2.new(1, 0)}
+            ):Play()
+            task.wait(2)
+
+            TweenService:Create(
+                textGradient,
+                TweenInfo.new(2, Enum.EasingStyle.Linear),
+                {Offset = Vector2.new(-1, 0)}
+            ):Play()
+            task.wait(2)
         end
     end)
 
