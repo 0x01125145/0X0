@@ -29,46 +29,68 @@ local function CreateLoaderScreen(text)
         {Rotation = 360}
     ):Play()
 
-    local diamond = Instance.new("Frame")
-    diamond.AnchorPoint = Vector2.new(0.5, 0.5)
-    diamond.Position = UDim2.fromScale(0.5, 0.45)
-    diamond.Size = UDim2.new(0, 80, 0, 80)
-    diamond.BackgroundTransparency = 1
-    diamond.Parent = bg
+    -- Original diamond
+local diamond = Instance.new("Frame")
+diamond.AnchorPoint = Vector2.new(0.5, 0.5)
+diamond.Position = UDim2.fromScale(0.5, 0.45)
+diamond.Size = UDim2.new(0, 80, 0, 80)
+diamond.BackgroundTransparency = 1
+diamond.Parent = bg
 
-    local outline = Instance.new("Frame")
-    outline.AnchorPoint = Vector2.new(0.5, 0.5)
-    outline.Position = UDim2.fromScale(0.5, 0.5)
-    outline.Size = UDim2.new(1, 0, 1, 0)
-    outline.BackgroundTransparency = 1
-    outline.BorderSizePixel = 2
-    outline.BorderColor3 = Color3.fromRGB(150, 255, 120)
-    outline.Rotation = 45
-    outline.Parent = diamond
+local outline = Instance.new("Frame")
+outline.AnchorPoint = Vector2.new(0.5, 0.5)
+outline.Position = UDim2.fromScale(0.5, 0.5)
+outline.Size = UDim2.new(1, 0, 1, 0)
+outline.BackgroundTransparency = 1
+outline.BorderSizePixel = 2
+outline.BorderColor3 = Color3.fromRGB(150, 255, 120)
+outline.Rotation = 45
+outline.Parent = diamond
 
-    local glow = Instance.new("UIStroke")
-    glow.Thickness = 2
-    glow.Color = Color3.fromRGB(150, 255, 120)
-    glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    glow.Parent = outline
+local glow = Instance.new("UIStroke")
+glow.Thickness = 2
+glow.Color = Color3.fromRGB(150, 255, 120)
+glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+glow.Parent = outline
 
-    task.spawn(function()
-        while diamond.Parent do
-            TweenService:Create(
-                outline,
-                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                {Rotation = 135}
-            ):Play()
-            task.wait(0.9)
+-- 3D tilt effect
+task.spawn(function()
+    while diamond.Parent do
+        TweenService:Create(
+            outline,
+            TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {Rotation = 135}
+        ):Play()
 
-            TweenService:Create(
-                outline,
-                TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                {Rotation = 45}
-            ):Play()
-            task.wait(0.9)
-        end
-    end)
+        TweenService:Create(
+            diamond,
+            TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {
+                Size = UDim2.new(0, 86, 0, 74),
+                Position = UDim2.fromScale(0.5, 0.445)
+            }
+        ):Play()
+
+        task.wait(0.9)
+
+        TweenService:Create(
+            outline,
+            TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {Rotation = 45}
+        ):Play()
+
+        TweenService:Create(
+            diamond,
+            TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+            {
+                Size = UDim2.new(0, 74, 0, 86),
+                Position = UDim2.fromScale(0.5, 0.455)
+            }
+        ):Play()
+
+        task.wait(0.9)
+    end
+end)
 
     local label = Instance.new("TextLabel")
     label.AnchorPoint = Vector2.new(0.5, 0)
