@@ -1,191 +1,543 @@
--- HubLibrary (Seliware-compatible)
+--[[
+    Library.lua
+    ===========
+    • Theme engine
+    • Window / Tabs / Sections
+    • Buttons / Toggles / Sliders
+    • Keybind system
+    • Notification system (animated)
+]]
 
-local Hub = {}
-Hub.__index = Hub
+local Library = {}
+Library.__index = Library
 
-local function safeParent()
-    return (gethui and gethui()) or game.CoreGui
-end
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
-local function newGui(name)
-    local g = Instance.new("ScreenGui")
-    g.Name = name
-    g.IgnoreGuiInset = true
-    g.ResetOnSpawn = false
-    g.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    g.Parent = safeParent()
-    return g
-end
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
---------------------------------------------------------------------
--- LOADING SCREEN
---------------------------------------------------------------------
+local DefaultTheme = {
+    Accent = Color3.fromRGB(255, 70, 70),
+    Background = Color3.fromRGB(15, 15, 15),
+    BackgroundAlt = Color3.fromRGB(20, 20, 20),
+    Topbar = Color3.fromRGB(25, 25, 25),
+    Text = Color3.fromRGB(235, 235, 235),
+    TextDim = Color3.fromRGB(170, 170, 170),
+    NotificationSuccess = Color3.fromRGB(90, 200, 120),
+    NotificationError = Color3.fromRGB(220, 80, 80),
+    NotificationInfo = Color3.fromRGB(90, 150, 230),
+}
 
-function Hub.ShowLoading()
-    if Hub.LoadingGui then
-        Hub.LoadingGui.Enabled = true
-        return
+Library._theme = DefaultTheme
+Library._name = "Hub"
+Library._version = "v1.0"
+Library._logo = nil
+Library._keybinds = {}
+Library._uiVisible = true
+
+-- ScreenGui
+local HubGui = Instance.new("ScreenGui")
+HubGui.Name = "ScriptHubLibrary"
+HubGui.ResetOnSpawn = false
+HubGui.Parent = playerGui
+
+-- Notification GUI
+local NotifGui = Instance.new("ScreenGui")
+NotifGui.Name = "ScriptHubNotifications"
+NotifGui.ResetOnSpawn = false
+NotifGui.Parent = playerGui
+
+local NotifContainer = Instance.new("Frame")
+NotifContainer.Size = UDim2.new(0, 320, 1, -40)
+NotifContainer.Position = UDim2.new(1, -20, 0, 20)
+NotifContainer.AnchorPoint = Vector2.new(1, 0)
+NotifContainer.BackgroundTransparency = 1
+NotifContainer.Parent = NotifGui
+
+local NotifLayout = Instance.new("UIListLayout")
+NotifLayout.Padding = UDim.new(0, 8)
+NotifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+NotifLayout.Parent = NotifContainer
+
+-- Keybind handling
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        for _, bind in pairs(Library._keybinds) do
+            if bind.KeyCode == input.KeyCode then
+                pcall(bind.Callback)
+            end
+        end
     end
+end)
 
-    local gui = newGui("HubLoading")
-
-    local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(1,0,1,0)
-    bg.BackgroundColor3 = Color3.fromRGB(10,10,10)
-    bg.Parent = gui
-
-    local text = Instance.new("TextLabel")
-    text.Size = UDim2.new(0,200,0,50)
-    text.Position = UDim2.new(0.5,-100,0.5,-25)
-    text.BackgroundTransparency = 1
-    text.Font = Enum.Font.GothamBold
-    text.TextSize = 24
-    text.TextColor3 = Color3.new(1,1,1)
-    text.Text = "Loading..."
-    text.Parent = bg
-
-    Hub.LoadingGui = gui
+-- Theme merge
+local function mergeTheme(base, override)
+    if not override then return base end
+    local t = {}
+    for k, v in pairs(base) do t[k] = v end
+    for k, v in pairs(override) do t[k] = v end
+    return t
 end
 
-function Hub.HideLoading()
-    if Hub.LoadingGui then
-        Hub.LoadingGui.Enabled = false
-    end
+-- Public: Init
+function Library:Init(config)
+    config = config or {}
+    self._name = config.Name or self._name
+    self._version = config.Version or self._version
+    self._logo = config.Logo
+    self._theme = mergeTheme(DefaultTheme, config.Theme)
 end
 
---------------------------------------------------------------------
--- NOTIFICATIONS
---------------------------------------------------------------------
-
-function Hub.Notify(text, duration)
+-- Notifications
+function Library:Notify(title, message, notifType, duration)
+    notifType = notifType or "info"
     duration = duration or 3
 
-    if not Hub.NotifGui then
-        local gui = newGui("HubNotifications")
-
-        local container = Instance.new("Frame")
-        container.Size = UDim2.new(0,300,1,-40)
-        container.Position = UDim2.new(1,-320,0,20)
-        container.BackgroundTransparency = 1
-        container.Parent = gui
-
-        local list = Instance.new("UIListLayout")
-        list.Padding = UDim.new(0,6)
-        list.HorizontalAlignment = Enum.HorizontalAlignment.Right
-        list.VerticalAlignment = Enum.VerticalAlignment.Top
-        list.Parent = container
-
-        Hub.NotifGui = gui
-        Hub.NotifContainer = container
+    local color = self._theme.NotificationInfo
+    if notifType == "success" then
+        color = self._theme.NotificationSuccess
+    elseif notifType == "error" then
+        color = self._theme.NotificationError
     end
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1,0,0,40)
-    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    frame.Parent = Hub.NotifContainer
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 80)
+    Frame.BackgroundColor3 = self._theme.BackgroundAlt
+    Frame.BackgroundTransparency = 0.1
+    Frame.Parent = NotifContainer
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,6)
-    corner.Parent = frame
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Frame
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1,-16,1,0)
-    label.Position = UDim2.new(0,8,0,0)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 16
-    label.TextColor3 = Color3.new(1,1,1)
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Text = text
-    label.Parent = frame
+    local Accent = Instance.new("Frame")
+    Accent.Size = UDim2.new(0, 4, 1, 0)
+    Accent.BackgroundColor3 = color
+    Accent.BorderSizePixel = 0
+    Accent.Parent = Frame
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Position = UDim2.new(0, 10, 0, 6)
+    TitleLabel.Size = UDim2.new(1, -20, 0, 22)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextSize = 16
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.TextColor3 = self._theme.Text
+    TitleLabel.Text = title
+    TitleLabel.Parent = Frame
+
+    local MsgLabel = Instance.new("TextLabel")
+    MsgLabel.Position = UDim2.new(0, 10, 0, 30)
+    MsgLabel.Size = UDim2.new(1, -20, 0, 40)
+    MsgLabel.BackgroundTransparency = 1
+    MsgLabel.Font = Enum.Font.Gotham
+    MsgLabel.TextSize = 14
+    MsgLabel.TextWrapped = true
+    MsgLabel.TextXAlignment = Enum.TextXAlignment.Left
+    MsgLabel.TextYAlignment = Enum.TextYAlignment.Top
+    MsgLabel.TextColor3 = self._theme.TextDim
+    MsgLabel.Text = message
+    MsgLabel.Parent = Frame
+
+    Frame.Position = UDim2.new(1, 320, 0, 0)
+    TweenService:Create(Frame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Position = UDim2.new(1, 0, 0, 0),
+        BackgroundTransparency = 0.05,
+    }):Play()
 
     task.delay(duration, function()
-        if frame then frame:Destroy() end
+        TweenService:Create(Frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+            Position = UDim2.new(1, 320, 0, 0),
+            BackgroundTransparency = 1,
+        }):Play()
+        task.wait(0.3)
+        Frame:Destroy()
     end)
 end
 
---------------------------------------------------------------------
--- MAIN HUB UI
---------------------------------------------------------------------
-
-function Hub:Init()
-    if Hub.MainGui then return end
-
-    local gui = newGui("HubMain")
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0,400,0,260)
-    frame.Position = UDim2.new(0.5,-200,0.5,-130)
-    frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-    frame.Parent = gui
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,8)
-    corner.Parent = frame
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1,-20,0,30)
-    title.Position = UDim2.new(0,10,0,10)
-    title.BackgroundTransparency = 1
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 20
-    title.TextColor3 = Color3.new(1,1,1)
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Text = self.Config.Title or "Hub"
-    title.Parent = frame
-
-    local content = Instance.new("Frame")
-    content.Size = UDim2.new(1,-20,1,-60)
-    content.Position = UDim2.new(0,10,0,50)
-    content.BackgroundTransparency = 1
-    content.Parent = frame
-
-    local list = Instance.new("UIListLayout")
-    list.Padding = UDim.new(0,6)
-    list.Parent = content
-
-    Hub.MainGui = gui
-    Hub.Content = content
+-- Keybinds
+function Library:BindKey(name, keyCode, callback)
+    self._keybinds[name] = {
+        KeyCode = keyCode,
+        Callback = callback,
+    }
 end
 
-function Hub:Open()
-    if not Hub.MainGui then self:Init() end
-    Hub.MainGui.Enabled = true
+-- UI visibility
+function Library:SetUIVisible(state)
+    self._uiVisible = state and true or false
+    HubGui.Enabled = self._uiVisible
 end
 
-function Hub:Close()
-    if Hub.MainGui then Hub.MainGui.Enabled = false end
+function Library:GetUIVisible()
+    return self._uiVisible
 end
 
-function Hub:AddButton(info)
-    if not Hub.MainGui then self:Init() end
+-- Window / Tabs / Sections
+function Library:CreateWindow(config)
+    config = config or {}
+    local title = config.Title or (self._name .. " | " .. self._version)
 
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1,0,0,32)
-    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 16
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Text = info.Text or "Button"
-    btn.Parent = Hub.Content
+    local Main = Instance.new("Frame")
+    Main.Size = UDim2.new(0, 600, 0, 360)
+    Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    Main.AnchorPoint = Vector2.new(0.5, 0.5)
+    Main.BackgroundColor3 = self._theme.Background
+    Main.BorderSizePixel = 0
+    Main.Parent = HubGui
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0,6)
-    corner.Parent = btn
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 8)
+    MainCorner.Parent = Main
 
-    btn.MouseButton1Click:Connect(function()
-        if info.Callback then info.Callback() end
-    end)
+    local Topbar = Instance.new("Frame")
+    Topbar.Size = UDim2.new(1, 0, 0, 32)
+    Topbar.BackgroundColor3 = self._theme.Topbar
+    Topbar.BorderSizePixel = 0
+    Topbar.Parent = Main
+
+    local TopTitle = Instance.new("TextLabel")
+    TopTitle.Size = UDim2.new(1, -10, 1, 0)
+    TopTitle.Position = UDim2.new(0, 8, 0, 0)
+    TopTitle.BackgroundTransparency = 1
+    TopTitle.Font = Enum.Font.GothamBold
+    TopTitle.TextSize = 16
+    TopTitle.TextXAlignment = Enum.TextXAlignment.Left
+    TopTitle.TextColor3 = self._theme.Text
+    TopTitle.Text = title
+    TopTitle.Parent = Topbar
+
+    local TabBar = Instance.new("Frame")
+    TabBar.Size = UDim2.new(0, 140, 1, -32)
+    TabBar.Position = UDim2.new(0, 0, 0, 32)
+    TabBar.BackgroundColor3 = self._theme.BackgroundAlt
+    TabBar.BorderSizePixel = 0
+    TabBar.Parent = Main
+
+    local TabLayout = Instance.new("UIListLayout")
+    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabLayout.Padding = UDim.new(0, 4)
+    TabLayout.Parent = TabBar
+
+    local Content = Instance.new("Frame")
+    Content.Size = UDim2.new(1, -140, 1, -32)
+    Content.Position = UDim2.new(0, 140, 0, 32)
+    Content.BackgroundColor3 = self._theme.Background
+    Content.BorderSizePixel = 0
+    Content.Parent = Main
+
+    local Window = {
+        _library = self,
+        _main = Main,
+        _tabBar = TabBar,
+        _content = Content,
+        _tabs = {},
+        _currentTab = nil,
+    }
+
+    function Window:CreateTab(tabConfig)
+        tabConfig = tabConfig or {}
+        local name = tabConfig.Name or "Tab"
+
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(1, -8, 0, 28)
+        TabButton.BackgroundColor3 = self._library._theme.Background
+        TabButton.Text = name
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextSize = 14
+        TabButton.TextColor3 = self._library._theme.Text
+        TabButton.Parent = self._tabBar
+
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.Parent = TabButton
+
+        local Page = Instance.new("ScrollingFrame")
+        Page.Size = UDim2.new(1, -10, 1, -10)
+        Page.Position = UDim2.new(0, 5, 0, 5)
+        Page.BackgroundTransparency = 1
+        Page.ScrollBarThickness = 4
+        Page.Visible = false
+        Page.Parent = self._content
+
+        local PageLayout = Instance.new("UIListLayout")
+        PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        PageLayout.Padding = UDim.new(0, 8)
+        PageLayout.Parent = Page
+
+        local Tab = {
+            _window = self,
+            _button = TabButton,
+            _page = Page,
+        }
+        table.insert(self._tabs, Tab)
+
+        local function SetActive()
+            if self._currentTab then
+                self._currentTab._page.Visible = false
+                self._currentTab._button.BackgroundColor3 = self._library._theme.Background
+            end
+            self._currentTab = Tab
+            Page.Visible = true
+            TabButton.BackgroundColor3 = self._library._theme.Accent
+        end
+
+        TabButton.MouseButton1Click:Connect(SetActive)
+        if not self._currentTab then
+            SetActive()
+        end
+
+        function Tab:CreateSection(sectionConfig)
+            sectionConfig = sectionConfig or {}
+            local sName = sectionConfig.Name or "Section"
+
+            local SectionFrame = Instance.new("Frame")
+            SectionFrame.Size = UDim2.new(1, -10, 0, 40)
+            SectionFrame.BackgroundColor3 = self._window._library._theme.BackgroundAlt
+            SectionFrame.BorderSizePixel = 0
+            SectionFrame.Parent = self._page
+
+            local SectionCorner = Instance.new("UICorner")
+            SectionCorner.CornerRadius = UDim.new(0, 6)
+            SectionCorner.Parent = SectionFrame
+
+            local SectionTitle = Instance.new("TextLabel")
+            SectionTitle.Position = UDim2.new(0, 8, 0, 4)
+            SectionTitle.Size = UDim2.new(1, -16, 0, 20)
+            SectionTitle.BackgroundTransparency = 1
+            SectionTitle.Font = Enum.Font.GothamBold
+            SectionTitle.TextSize = 14
+            SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+            SectionTitle.TextColor3 = self._window._library._theme.Text
+            SectionTitle.Text = sName
+            SectionTitle.Parent = SectionFrame
+
+            local Container = Instance.new("Frame")
+            Container.Position = UDim2.new(0, 8, 0, 24)
+            Container.Size = UDim2.new(1, -16, 0, 0)
+            Container.BackgroundTransparency = 1
+            Container.Parent = SectionFrame
+
+            local ContainerLayout = Instance.new("UIListLayout")
+            ContainerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            ContainerLayout.Padding = UDim.new(0, 4)
+            ContainerLayout.Parent = Container
+
+            local function Resize()
+                task.defer(function()
+                    SectionFrame.Size = UDim2.new(1, -10, 0, 28 + ContainerLayout.AbsoluteContentSize.Y)
+                end)
+            end
+
+            ContainerLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(Resize)
+            Resize()
+
+            local Section = {
+                _tab = self,
+                _frame = SectionFrame,
+                _container = Container,
+            }
+
+            function Section:CreateButton(btnConfig)
+                btnConfig = btnConfig or {}
+                local text = btnConfig.Name or "Button"
+                local callback = btnConfig.Callback or function() end
+
+                local Btn = Instance.new("TextButton")
+                Btn.Size = UDim2.new(1, 0, 0, 26)
+                Btn.BackgroundColor3 = self._tab._window._library._theme.Background
+                Btn.Text = text
+                Btn.Font = Enum.Font.Gotham
+                Btn.TextSize = 14
+                Btn.TextColor3 = self._tab._window._library._theme.Text
+                Btn.Parent = self._container
+
+                local BtnCorner = Instance.new("UICorner")
+                BtnCorner.CornerRadius = UDim.new(0, 4)
+                BtnCorner.Parent = Btn
+
+                Btn.MouseButton1Click:Connect(function()
+                    pcall(callback)
+                end)
+
+                Resize()
+                return Btn
+            end
+
+            function Section:CreateToggle(toggleConfig)
+                toggleConfig = toggleConfig or {}
+                local text = toggleConfig.Name or "Toggle"
+                local default = toggleConfig.Default or false
+                local callback = toggleConfig.Callback or function() end
+
+                local Frame = Instance.new("Frame")
+                Frame.Size = UDim2.new(1, 0, 0, 26)
+                Frame.BackgroundColor3 = self._tab._window._library._theme.Background
+                Frame.Parent = self._container
+
+                local Corner = Instance.new("UICorner")
+                Corner.CornerRadius = UDim.new(0, 4)
+                Corner.Parent = Frame
+
+                local Label = Instance.new("TextLabel")
+                Label.Size = UDim2.new(1, -40, 1, 0)
+                Label.Position = UDim2.new(0, 8, 0, 0)
+                Label.BackgroundTransparency = 1
+                Label.Font = Enum.Font.Gotham
+                Label.TextSize = 14
+                Label.TextXAlignment = Enum.TextXAlignment.Left
+                Label.TextColor3 = self._tab._window._library._theme.Text
+                Label.Text = text
+                Label.Parent = Frame
+
+                local ToggleBtn = Instance.new("TextButton")
+                ToggleBtn.Size = UDim2.new(0, 24, 0, 24)
+                ToggleBtn.Position = UDim2.new(1, -28, 0.5, 0)
+                ToggleBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+                ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                ToggleBtn.Text = ""
+                ToggleBtn.Parent = Frame
+
+                local TCorner = Instance.new("UICorner")
+                TCorner.CornerRadius = UDim.new(1, 0)
+                TCorner.Parent = ToggleBtn
+
+                local state = default
+
+                local function Update()
+                    ToggleBtn.BackgroundColor3 = state and self._tab._window._library._theme.Accent or Color3.fromRGB(60, 60, 60)
+                    pcall(callback, state)
+                end
+
+                ToggleBtn.MouseButton1Click:Connect(function()
+                    state = not state
+                    Update()
+                end)
+
+                Update()
+                Resize()
+
+                return {
+                    Set = function(_, v)
+                        state = v
+                        Update()
+                    end,
+                    Get = function()
+                        return state
+                    end,
+                }
+            end
+
+            function Section:CreateSlider(sliderConfig)
+                sliderConfig = sliderConfig or {}
+                local text = sliderConfig.Name or "Slider"
+                local min = sliderConfig.Min or 0
+                local max = sliderConfig.Max or 100
+                local default = sliderConfig.Default or min
+                local callback = sliderConfig.Callback or function() end
+
+                local Frame = Instance.new("Frame")
+                Frame.Size = UDim2.new(1, 0, 0, 40)
+                Frame.BackgroundColor3 = self._tab._window._library._theme.Background
+                Frame.Parent = self._container
+
+                local Corner = Instance.new("UICorner")
+                Corner.CornerRadius = UDim.new(0, 4)
+                Corner.Parent = Frame
+
+                local Label = Instance.new("TextLabel")
+                Label.Size = UDim2.new(1, 0, 0, 18)
+                Label.Position = UDim2.new(0, 8, 0, 2)
+                Label.BackgroundTransparency = 1
+                Label.Font = Enum.Font.Gotham
+                Label.TextSize = 14
+                Label.TextXAlignment = Enum.TextXAlignment.Left
+                Label.TextColor3 = self._tab._window._library._theme.Text
+                Label.Text = text .. " (" .. tostring(default) .. ")"
+                Label.Parent = Frame
+
+                local Bar = Instance.new("Frame")
+                Bar.Size = UDim2.new(1, -16, 0, 6)
+                Bar.Position = UDim2.new(0, 8, 0, 26)
+                Bar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                Bar.BorderSizePixel = 0
+                Bar.Parent = Frame
+
+                local BarCorner = Instance.new("UICorner")
+                BarCorner.CornerRadius = UDim.new(1, 0)
+                BarCorner.Parent = Bar
+
+                local Fill = Instance.new("Frame")
+                Fill.Size = UDim2.new(0, 0, 1, 0)
+                Fill.BackgroundColor3 = self._tab._window._library._theme.Accent
+                Fill.BorderSizePixel = 0
+                Fill.Parent = Bar
+
+                local FillCorner = Instance.new("UICorner")
+                FillCorner.CornerRadius = UDim.new(1, 0)
+                FillCorner.Parent = Fill
+
+                local value = default
+
+                local function SetValue(v)
+                    v = math.clamp(v, min, max)
+                    value = v
+                    local alpha = (v - min) / (max - min)
+                    Fill.Size = UDim2.new(alpha, 0, 1, 0)
+                    Label.Text = text .. " (" .. tostring(math.floor(v)) .. ")"
+                    pcall(callback, v)
+                end
+
+                local dragging = false
+
+                local function UpdateFromInput(x)
+                    local rel = (x - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X
+                    SetValue(min + (max - min) * rel)
+                end
+
+                Bar.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        UpdateFromInput(input.Position.X)
+                    end
+                end)
+
+                Bar.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        UpdateFromInput(input.Position.X)
+                    end
+                end)
+
+                SetValue(default)
+                Resize()
+
+                return {
+                    Set = function(_, v)
+                        SetValue(v)
+                    end,
+                    Get = function()
+                        return value
+                    end,
+                }
+            end
+
+            return Section
+        end
+
+        return Tab
+    end
+
+    return Window
 end
 
---------------------------------------------------------------------
--- CONSTRUCTOR
---------------------------------------------------------------------
-
-function Hub.new(config)
-    local self = setmetatable({}, Hub)
-    self.Config = config or { Title = "Hub" }
-    return self
-end
-
-return Hub
+return Library
