@@ -1,7 +1,3 @@
--- Premium LoaderScreen (Diamond Flip Animation)
--- Gradient: #6a9113 → #141517
--- Glow green text + subtle particles + fade-out support
-
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
